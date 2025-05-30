@@ -77,23 +77,4 @@ typedef unsigned long long int ULONG64;
 typedef double DOUBLE;
 /**< Double type                                : 64 bits                   */
 
-typedef struct ETH_CONFIG_MODE
-{
-    /** FPGA MAC address             */
-    UINT8 au8MacId[6];
-
-    /** PC IP address                */
-    UINT8 au8PcIpAddr[4];
-
-    /** FPGA IP address              */
-    UINT8 au8Dca1000IpAddr[4];
-
-    /** Record port number           */
-    UINT32 u32RecordPortNo;
-
-    /** Config port number           */
-    UINT32 u32ConfigPortNo;
-} strEthConfigMode;
-
-
 #endif // DCA_TYPES

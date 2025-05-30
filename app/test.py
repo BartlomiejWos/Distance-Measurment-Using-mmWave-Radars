@@ -10,5 +10,5 @@ os.add_dll_directory(dll_path)
 
 import radar_api
 
-radar_api.read_rfdc_card_dll_version()
+radar_api.dca1000_config_init()
 radar_api.read_rfdc_card_fpga_version()
