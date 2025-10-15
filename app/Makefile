@@ -14,7 +14,7 @@ EXTERNAL_LIBS = -L$(EXTERNAL_LIB_PATH) -lReleaseRF_API
 EXTERNAL_INCLUDES = -I$(EXTERNAL_LIB_PATH)/RF_API -I$(PYBIND11_INCLUDE) -I$(PYTHON_INCLUDE)
 
 
-CXXFLAGS = -std=c++14 -shared -fPIC -static-libgcc -static-libstdc++ $(EXTERNAL_INCLUDES)
+CXXFLAGS = -std=c++14 -shared -fPIC -static-libgcc -static-libstdc++ $(EXTERNAL_INCLUDES) -DENABLE_DEBUG
 
 
 LDFLAGS = $(shell $(PYTHON_CONFIG) --ldflags) -L/mingw64/lib -lmingw32 -mwindows $(EXTERNAL_LIBS)
