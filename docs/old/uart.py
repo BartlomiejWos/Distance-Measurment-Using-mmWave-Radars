@@ -41,33 +41,35 @@ def radar_config(ser,commands):
         time.sleep(0.8)
         _send_command(ser, cmd)
 
-max_freq_var = 449e6 
-N = 256 
 
-step = (2 * max_freq_var) / (N - 1)
+def prepare_commands():
+    max_freq_var = 449e6 
+    N = 256 
 
-txMask = [2, 4]
+    step = (2 * max_freq_var) / (N - 1)
 
-COMMANDS = [
-    "flushCfg",
-    "dfeDataOutputMode 1",
-    "channelCfg 15 7 0",
-    "adcCfg 2 1",
-    "adcbufCfg -1 0 1 1 1",
-    "lowPower 0 0",
-    "profileCfg 0 77 7 3 39 0 0 0 1 256 7200 0 0 30",
-]
+    txMask = [2, 4]
 
-freq_vars = [int(round(-max_freq_var + i * step)) for i in range(N)]
+    COMMANDS = [
+        "flushCfg",
+        "dfeDataOutputMode 1",
+        # "channelCfg 15 7 0",
+        # "adcCfg 2 1",
+        # "adcbufCfg -1 0 1 1 1",
+        # "lowPower 0 0",
+        # "profileCfg 0 77 7 3 39 0 0 0 1 256 7200 0 0 30",
+    ]
+    # freq_vars = [int(round(-max_freq_var + i * step)) for i in range(N)]
 
-for i, freqVar in enumerate(freq_vars):
-    COMMANDS.append(f'chirpCfg {2*i} {2*i} 0 {freqVar} 0 0 0 {txMask[0]}')
-    COMMANDS.append(f'chirpCfg {2*i+1} {2*i+1} 0 {freqVar} 0 0 0 {txMask[1]}')
+    # for i, freqVar in enumerate(freq_vars):
+    #     COMMANDS.append(f'chirpCfg {2*i} {2*i} 0 {freqVar} 0 0 0 {txMask[0]}')
+    #     COMMANDS.append(f'chirpCfg {2*i+1} {2*i+1} 0 {freqVar} 0 0 0 {txMask[1]}')
 
-COMMANDS += [
-    f"frameCfg 0 {2*N-1} 1 1 50 1 0",
-    "lvdsStreamCfg -1 0 1 0",
-]
+    # COMMANDS += [
+    #     f"frameCfg 0 {2*N-1} 1 1 50 1 0",
+    #     "lvdsStreamCfg -1 0 1 0",
+    # ]
+    return COMMANDS
 
 
 # max_freq_var = 450e6  # ±450 MHz ->  Hz

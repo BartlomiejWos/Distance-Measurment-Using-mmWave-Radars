@@ -1,0 +1,87 @@
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.so
+*.egg-info/
+.eggs/
+.build/
+dist/
+build/
+*.spec
+
+# =========================
+# Virtual environments
+# =========================
+venv/
+.venv/
+ENV/
+env/
+
+# =========================
+# VS Code / IDE
+# =========================
+.vscode/
+.idea/
+*.iml
+
+# =========================
+# OS / Windows
+# =========================
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# Test / coverage
+# =========================
+.coverage
+htmlcov/
+.pytest_cache/
+
+# =========================
+# MSYS / MinGW
+# =========================
+.msys64/
+.mingw64/
+*.stackdump
+
+# =========================
+# C / C++ build artifacts
+# =========================
+*.o
+*.obj
+*.dll
+*.exe
+*.lib
+*.a
+
+# =========================
+# Project specific
+# =========================
+# JSON configs (if user-specific)
+*.json
+*.json5
+
+# If you want to keep example configs, unignore them:
+#!app/src/cli_cfg/radar_cfg.json5
+
+# UART / runtime artifacts
+*.dat
+*.bin
+*.pcap
+
+# =========================
+# Temporary files
+# =========================
+*.tmp
+*.bak
+*.swp
+*.swo
