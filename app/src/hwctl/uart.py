@@ -20,8 +20,6 @@ class PySerialUart(UartTransport):
             self._ser.close()
             self._ser = None
 
-
-
     def send(self,cmd):
         self._ser.write((cmd + '\n').encode('utf-8'))
         print(f">>> sended {cmd}\n")

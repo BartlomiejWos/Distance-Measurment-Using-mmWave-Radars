@@ -1,5 +1,8 @@
 import time
-from .interfaces import UartTransport, RadarApi
+
+from app.src.ports.uart import UartTransport
+from app.src.ports.radar_api import RadarApi
+
 
 class HwCtl:
     def __init__(self, uart: UartTransport, radar: RadarApi, logger):
