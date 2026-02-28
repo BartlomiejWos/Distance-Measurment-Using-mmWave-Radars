@@ -66,12 +66,9 @@ htmlcov/
 # =========================
 # Project specific
 # =========================
-# JSON configs (if user-specific)
-*.json
-*.json5
-
-# If you want to keep example configs, unignore them:
-#!app/src/cli_cfg/radar_cfg.json5
+postproc/data/
+postproc/lab_data/
+docs.txt
 
 # UART / runtime artifacts
 *.dat

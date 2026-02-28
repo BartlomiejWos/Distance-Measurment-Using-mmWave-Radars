@@ -45,7 +45,7 @@ static strRecConfigMode gsRecConfigMode = {
 
 
 static strStartRecConfigMode gsStartRecConfigMode = {
-    .s8FileBasePath = "C:\\Users\\Asus\\Desktop\\my_radar_api\\app\\radar_data\\",  
+    .s8FileBasePath = "C:\\Users\\Asus\\Desktop\\REPOZYTORIUM\\Distance-Measurment-Using-mmWave-Radars\\postproc\\data",  
     .s8FilePrefix = "capture_",                    
     .bSequenceNumberEnable = true,                  
     .bMsbToggleEnable = false,                     
@@ -58,6 +58,18 @@ static strStartRecConfigMode gsStartRecConfigMode = {
     .eConfigLogMode = RAW_MODE,
     .eLvdsMode = TWO_LANE,
 };
+
+
+void dca_set_file_base_path(const std::string& path) {
+    constexpr size_t CAP = sizeof(gsStartRecConfigMode.s8FileBasePath);
+
+    if (path.size() >= CAP) {
+        throw std::runtime_error("Path too long for s8FileBasePath buffer");
+    }
+
+    std::memset(gsStartRecConfigMode.s8FileBasePath, 0, CAP);
+    std::memcpy(gsStartRecConfigMode.s8FileBasePath, path.c_str(), path.size());
+}
 
 
 // Bezpieczne ustawienie prefixu (zero-terminated, bez przepełnienia)
@@ -85,21 +97,6 @@ void dca_set_file_prefix(const std::string& prefix) {
 
 
 static py::function py_event_callback;
-
-// static strStartRecConfigMode gsStartRecConfigMode = {
-//     .s8FileBasePath = "C:\\Users\\Asus\\Desktop\\my_radar_api\\app\\radar_data\\",
-//     .s8FilePrefix = "capture_",
-//     .bSequenceNumberEnable = true,
-//     .bMsbToggleEnable = false,
-//     .bReorderEnable = false,
-//     .u16MaxRecFileSize = 1024,
-//     .eRecordStopMode = FRAMES,             
-//     .u32BytesToCapture = 0,                 
-//     .u32DurationToCapture = 0,             
-//     .u32FramesToCapture = 1,                
-//     .eConfigLogMode = RAW_MODE,
-//     .eLvdsMode = TWO_LANE,
-// };
 
 
 /** @fn void EthernetEventHandlercallback(UINT16 u16CmdCode, UINT16 u16Status)
@@ -148,7 +145,7 @@ void EthernetEventHandlercallback(UINT16 u16CmdCode, UINT16 u16Status)
                 printf("STS_RECORD_COMPLETED Async event recieved [%d] \n", u16Status);
                 if (py_event_callback)
                 {
-                    py::gil_scoped_acquire acquire;
+                    PyGILState_STATE gstate = PyGILState_Ensure();
                     try
                     {
                         py_event_callback(u16CmdCode, u16Status);
@@ -157,7 +154,8 @@ void EthernetEventHandlercallback(UINT16 u16CmdCode, UINT16 u16Status)
                     {
                         fprintf(stderr, "Python callback error: %s\n", e.what());
                     }
-                }    
+                    PyGILState_Release(gstate);
+                }
                 break;
             case 0x9:
                 printf("STS_LVDS_BUFFER_FULL Async event recieved [%d] \n", u16Status);
@@ -182,7 +180,7 @@ void EthernetEventHandlercallback(UINT16 u16CmdCode, UINT16 u16Status)
                 printf("RESET_FPGA_CMD_CODE Async event recieved [%d] \n", u16CmdCode);
                 if (py_event_callback)
                 {
-                    py::gil_scoped_acquire acquire;
+                    PyGILState_STATE gstate = PyGILState_Ensure();
                     try
                     {
                         py_event_callback(u16CmdCode, u16Status);
@@ -191,6 +189,7 @@ void EthernetEventHandlercallback(UINT16 u16CmdCode, UINT16 u16Status)
                     {
                         fprintf(stderr, "Python callback error: %s\n", e.what());
                     }
+                    PyGILState_Release(gstate);
                 }
                 break;
             case 0x02:
@@ -353,7 +352,8 @@ void inlineStatsCallback(strRFDCCard_InlineProcStats inlineStats,
 
 
 int dca1000_config_init()
-{   
+{
+    py::gil_scoped_release release;
     UINT16 u16CmdCode = 0;
     SINT8 version[MAX_NAME_LEN] = {0};
     SINT32 s32CliStatus, cnt = 0;
@@ -446,6 +446,7 @@ void read_rfdc_card_fpga_version()
 
 int dca_trigger_record(void)
 {
+    py::gil_scoped_release release;
     SINT32 s32CliStatus;
 
     /** API Call - Start Record     */
@@ -464,18 +465,19 @@ int dca_trigger_record(void)
  */
 int dca_stop_record(void)
 {
+    py::gil_scoped_release release;
     SINT32 s32CliStatus;
     UINT16 u16CmdCode = 0;
 
     /* if already stopped */
-    if ((dcaCaptureMode == DCA1000_CAPTURE_STOP) /* || (dcaCaptureMode == DCA1000_CAPTURE_DONE) */)
+    if (dcaCaptureMode == DCA1000_CAPTURE_STOP)
     {
         return -1;
     }
-    /* API Call - Ethernet connection */
+
+    /* API Call - Stop Record */
     if (u16CmdCode == CMD_CODE_CLI_ASYNC_RECORD_STOP)
     {
-        /** API Call - Stop Record    */
         s32CliStatus = StopRecordAsyncCmd();
     }
     else
@@ -485,7 +487,6 @@ int dca_stop_record(void)
 
     if (s32CliStatus != SUCCESS_STATUS)
     {
-        /** Handling command response */
         DecodeCommandStatus(s32CliStatus, "Stop Record Command");
     }
     else
@@ -500,19 +501,50 @@ void register_event_callback(py::function cb)
     py_event_callback = cb;
 }
 
+
+/** @fn int dca1000_deinit(void)
+ * @brief Tear down DCA1000 connections and reset module state so that
+ *        dca1000_config_init() can be called again in the same process.
+ */
+int dca1000_deinit(void)
+{
+    {
+        py::gil_scoped_release release;
+        /* Stop record if capture is still running */
+        if (dcaCaptureMode == DCA1000_CAPTURE_ONGOING)
+        {
+            SINT32 s32CliStatus = StopRecordData();
+            DecodeCommandStatus(s32CliStatus, "Deinit Stop Record");
+        }
+
+        /* Disconnect both modes — safe to call even if already disconnected */
+        DisconnectRFDCCard_RecordMode();
+        DisconnectRFDCCard_ConfigMode();
+
+        /* Reset global state for next init cycle */
+        dcaCaptureMode = 0;
+    }
+    /* GIL re-acquired here — safe to touch py::function */
+    py_event_callback = py::function();
+
+    printf("[DEINIT] DCA1000 deinitialized\n");
+    return 0;
+}
+
 #ifdef __cplusplus
 }
 #endif
 
 
-make
 PYBIND11_MODULE(radar_api, module)
 {
     module.doc() = "Python bindings for RF FPGA version API via pybind11";
     module.def("register_event_callback", &register_event_callback);
+    module.def("dca_set_file_base_path", &dca_set_file_base_path);
     module.def("dca_set_file_prefix", &dca_set_file_prefix);
     module.def("dca1000_config_init", &dca1000_config_init);
+    module.def("dca1000_deinit", &dca1000_deinit);
     module.def("read_rfdc_card_fpga_version", &read_rfdc_card_fpga_version);
     module.def("dca_trigger_record", &dca_trigger_record);
-    module.def("dca_stop_record", &dca_stop_record);  
+    module.def("dca_stop_record", &dca_stop_record);
 }

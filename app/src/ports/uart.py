@@ -1,9 +1,7 @@
 from typing import Protocol
 
-class UartTransport(Protocol):
-    def connect(self) -> None:
-        pass
-    def close(self) -> None:
-        pass
-    def send(self, cmd: str) -> None:
-        pass
+
+class UartPort(Protocol):
+    def connect(self) -> None: ...
+    def close(self) -> None: ...
+    def send(self, cmd: str) -> bool: ...
