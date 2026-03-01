@@ -1,6 +1,9 @@
 from dataclasses import dataclass
 
 
+SOC_CASCADING_NA = 0
+
+
 class DFEOutputMode:
     _FRAME_BASED_CHIRPS = 1
     _ADV_FRAME_CFG = 3
@@ -62,22 +65,9 @@ class RxChannelMask:
 
 class TxChannelMask:
     TX1 = 0b001
-    # TX2 = 0b010
-    # TX3 = 0b100
-
-    # AZIMUTH_2 = TX1 | TX3        # 0b101 = 5
-    # AZIMUTH_ELEVATION = TX1 | TX2  # 0b011 = 3
-    # ALL = TX1 | TX2 | TX3        # 0b111 = 7
-
     _ALLOWED = {
         TX1,
-        # TX2,
-        # TX3,
-        # AZIMUTH_2,
-        # AZIMUTH_ELEVATION,
-        # ALL,
     }
-
     def __init__(self, value: int) -> None:
         self._value = value
 
