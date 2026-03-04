@@ -1,23 +1,11 @@
 {
   // Path where DCA1000 saves .bin data files (must exist)
   output_path: "C:\\Users\\Asus\\Desktop\\REPOZYTORIUM\\Distance-Measurment-Using-mmWave-Radars\\postproc\\data",
-
+ 
   channel_cfg: {
-    // DFE output mode:
-    // 1 = FRAME_BASED_CHIRPS
-    // 3 = ADV_FRAME_CFG
-    dfe_output_mode: 1,
-
-    // RX channel mask:
-    // 1  = 1 antenna   (0001b)
-    // 3  = 2 antennas  (0011b)
-    // 7  = 3 antennas  (0111b)
-    // 15 = 4 antennas  (1111b)
-    rx_channel_mask: 15,
-
-    // TX channel mask:
-    // 1 = TX1
-    tx_channel_mask: 1,
+    dfe_output_mode: 1,  // 1 = FRAME_BASED_CHIRPS  3 = ADV_FRAME_CFG
+    rx_channel_mask: 15, // 1  = 1 antenna (0001b) / 3 = 2 antennas (0011b) / 7 = 3 antennas  (0111b) 15 = 4 antennas  (1111b)
+    tx_channel_mask: 1,  // 1 = TX1
   },
 
   adc_cfg: {
@@ -26,23 +14,39 @@
   },
 
   profile_cfg: {
-    idle_time: 7,            // [usec]
-    adc_start_time: 3,       // [usec]
-    ramp_end_time: 39,       // [usec]
-    tx_out_power: 0,         // only value of 0 has been tested within context of mmW demo
-    tx_phase_shifter: 0,     // only value of 0 has been tested within context of mmW demo
-    freq_slope_const: 0,     // [MHz/usec] frequency slope of chirp
-    num_adc_samples: 256,    // number of ADC samples per chirp (must be even)
-    hpf_corner_freq1: 0,     // 0: 175KHz, 1: 235KHz, 2: 350KHz, 3: 700KHz
-    hpf_corner_freq2: 0,     // 0: 350KHz, 1: 700KHz, 2: 1.4MHz, 3: 2.8MHz
+    idle_time: 7,              // [usec]
+    adc_start_time: 3,         // [usec]
+    ramp_end_time: 39,         // [usec]
+    tx_out_power: 0,           // only value of 0 has been tested within context of mmW demo
+    tx_phase_shifter: 0,       // only value of 0 has been tested within context of mmW demo
+    freq_slope_const: 0,       // [MHz/usec] frequency slope of chirp
+    num_adc_samples: 256,      // number of ADC samples per chirp (must be even)
+    hpf_corner_freq1: 0,       // 0: 175KHz, 1: 235KHz, 2: 350KHz, 3: 700KHz
+    hpf_corner_freq2: 0,       // 0: 350KHz, 1: 700KHz, 2: 1.4MHz, 3: 2.8MHz
     dig_out_sample_rate: 7200, // [ksps] ADC sampling frequency
     tx_start_time: 1,          // [usec] TX start time
     rx_gain: 30,               // OR'ed value of RX gain [dB] and RF gain target
   },
 
   sfcw_cfg: {
-    start_freq_hz: 77e9,   // 77 GHz
+    start_freq_hz: 77e9,    // 77 GHz
     end_freq_hz: 78e9,      // 77.02 GHz
-    df_hz: 10e6,        // 1 MHz step
+    df_hz: 1e6,            // 1 MHz step
   },
+
+  // Uncomment fmcw_cfg to switch to FMCW mode (takes precedence over sfcw).
+  // In FMCW mode the user specifies chirp and frame config directly.
+  // fmcw_cfg: {
+  //   chirp: {
+  //     start_idx: 0,
+  //     end_idx: 0,
+  //   },
+  //   frame: {
+  //     chirp_start_idx: 0,
+  //     chirp_end_idx: 0,
+  //     num_loops: 128,          // 1-255
+  //     num_frames: 1,           // 0-65535, 0 = infinite
+  //     frame_periodicity_ms: 50,
+  //   },
+  // },
 }

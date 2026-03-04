@@ -11,8 +11,8 @@ from src.hwctl import HwCtl
 from src.hwctl.dca1000 import DCA1000
 from src.hwctl.uart import PySerialUart
 from src.cli.args import AppArgs
-from src.cfg.radar import RadarCfg
-from src.cfg.frame_builder import build_frames
+from src.cfg.types.radar import RadarCfg
+from src.cfg.frame_builder import build_sfcw_frames, build_fmcw_frames
 
 
 def _build_logger(verbose: bool = False) -> logging.Logger:
@@ -136,11 +136,32 @@ def _single_capture(frame_file: str, prefix: str,
         return 1
 
 
+def _save_metadata_sfcw(cfg: RadarCfg, num_frames: int, capture_dir: Path) -> None:
+    """Write metadata.json alongside .bin files for MATLAB postprocessing."""
+    rx_mask = int(cfg.channel_cfg.rx_channel_mask)
+    metadata = {
+        "num_adc_samples": int(cfg.profile_cfg.num_adc_samples),
+        "num_adc_bits": 16,
+        "num_rx": bin(rx_mask).count("1"),
+        "is_real": False,
+        "start_freq_hz": cfg.sfcw_cfg.start_freq_hz,
+        "end_freq_hz": cfg.sfcw_cfg.end_freq_hz,
+        "df_hz": cfg.sfcw_cfg.df_hz,
+        "num_frames": num_frames,
+    }
+    meta_path = capture_dir / "metadata.json"
+    with open(meta_path, "w") as f:
+        json.dump(metadata, f, indent=2)
+
+
 def run(args: AppArgs, cfg: RadarCfg, capture_dir: Path) -> int:
     """Multi-frame capture — one subprocess per frame for clean DLL state."""
     log = _build_logger(args.verbose)
 
-    frames = build_frames(cfg)
+    if cfg.fmcw_cfg is not None:
+        frames = build_fmcw_frames(cfg)
+    else:
+        frames = build_sfcw_frames(cfg)
     log.info("Builder produced %d frame(s)", len(frames))
 
     if getattr(sys, "frozen", False):
@@ -171,6 +192,7 @@ def run(args: AppArgs, cfg: RadarCfg, capture_dir: Path) -> int:
             log.error("Capture %s failed (rc=%d)", prefix, rc)
             return rc
 
+    _save_metadata_sfcw(cfg, len(frames), capture_dir)
     log.info("All %d frames captured successfully", len(frames))
     return 0
 

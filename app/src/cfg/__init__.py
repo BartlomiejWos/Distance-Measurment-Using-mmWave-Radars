@@ -1,15 +1,18 @@
 from .types.sfcw import SfcwCfg
-from .types.channel import ChannelCfg
-from .types.adc import ADCCfg
-from .radar import RadarCfg
+from .types.fmcw import FmcwCfg
+from .types.common.channel import ChannelCfg
+from .types.common.adc import ADCCfg
+from .types.radar import RadarCfg
 from .parse import load_cfg
-from .frame_builder import build_frames
+from .frame_builder import build_sfcw_frames, build_fmcw_frames
 
 __all__ = [
     "SfcwCfg",
+    "FmcwCfg",
     "ChannelCfg",
     "ADCCfg",
     "RadarCfg",
     "load_cfg",
-    "build_frames",
+    "build_sfcw_frames",
+    "build_fmcw_frames",
 ]

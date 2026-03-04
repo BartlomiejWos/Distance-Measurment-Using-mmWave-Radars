@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.cfg.radar import RadarCfg
+from .types.radar import RadarCfg
 from . import types
 
 _MAX_CHIRPS_PER_FRAME = 512
@@ -34,7 +34,7 @@ def _build_preamble(cfg: RadarCfg) -> list[str]:
     return [
         "flushCfg",
         f"dfeDataOutputMode {cfg.channel_cfg.dfe_output_mode.to_int()}",
-        f"channelCfg {cfg.channel_cfg.rx_channel_mask.to_int()}",
+        f"channelCfg {cfg.channel_cfg.rx_channel_mask.to_int()}"
         f" {cfg.channel_cfg.tx_channel_mask.to_int()}"
         f" {types.channel.SOC_CASCADING_NA}",
         f"adcCfg {types.adc.ADC_NUM_BITS_16}"
@@ -88,7 +88,44 @@ def _build_frame_commands(
     return cmds
 
 
-def build_frames(cfg: RadarCfg) -> list[list[str]]:
+def build_fmcw_frames(cfg: RadarCfg) -> list[list[str]]:
+    fmcw = cfg.fmcw_cfg
+    if fmcw is None:
+        raise ValueError("fmcw_cfg is required for FMCW mode")
+
+    preamble = _build_preamble(cfg)
+    cmds = list(preamble)
+    cmds.append(_build_profile_cmd(int(round(cfg.sfcw_cfg.start_freq_hz)), cfg))
+
+    tx_mask = cfg.channel_cfg.tx_channel_mask.to_int()
+    chirp = fmcw.chirp
+    cmds.append(
+        f"chirpCfg {chirp.start_idx} {chirp.end_idx}"
+        f" {types.fmcw.PROFILE_ID}"
+        f" {types.fmcw.START_FREQ_VAR}"
+        f" {types.fmcw.FREQ_SLOPE_VAR}"
+        f" {types.fmcw.IDLE_TIME_VAR}"
+        f" {types.fmcw.ADC_START_TIME_VAR}"
+        f" {tx_mask}"
+    )
+
+    frame = fmcw.frame
+    cmds.append(
+        f"frameCfg {frame.chirp_start_idx} {frame.chirp_end_idx}"
+        f" {frame.num_loops} {frame.num_frames}"
+        f" {frame.frame_periodicity_ms} {types.fmcw.TRIGGER_SELECT_SW}"
+        f" {types.fmcw.FRAME_TRIGGER_DELAY_MS}"
+    )
+    cmds.append(
+        f"lvdsStreamCfg {types.lvds.SUBFRAME_IDX_LEGACY}"
+        f" {types.lvds.ENABLE_HEADER_OFF}"
+        f" {types.lvds.DATA_FMT_ADC}"
+        f" {types.lvds.ENABLE_SW_OFF}"
+    )
+    return [cmds]
+
+
+def build_sfcw_frames(cfg: RadarCfg) -> list[list[str]]:
     sfcw = cfg.sfcw_cfg
     start = int(round(sfcw.start_freq_hz))
     end = int(round(sfcw.end_freq_hz))

@@ -3,7 +3,6 @@ from pathlib import Path
 import json5
 
 from src.cfg import types
-from src.cfg import radar
 
 
 def _load_json5(path: str | Path) ->  dict[str, Any]:
@@ -166,7 +165,48 @@ def _parse_sfcw_cfg(json_cfg: dict[str, Any]) -> types.sfcw.SfcwCfg | None:
     )
 
 
-def _parse_radar_cfg(json_cfg: dict[str, Any]) ->  radar.RadarCfg | None:
+def _parse_fmcw_cfg(json_cfg: dict[str, Any]) -> types.fmcw.FmcwCfg | None:
+    chirp_obj = json_cfg.get("chirp")
+    frame_obj = json_cfg.get("frame")
+    if not isinstance(chirp_obj, dict) or not isinstance(frame_obj, dict):
+        return None
+
+    start_idx = chirp_obj.get("start_idx")
+    end_idx = chirp_obj.get("end_idx")
+    if not isinstance(start_idx, int) or not isinstance(end_idx, int):
+        return None
+
+    chirp = types.fmcw.ChirpCfg(start_idx=start_idx, end_idx=end_idx)
+
+    chirp_start_idx = frame_obj.get("chirp_start_idx")
+    chirp_end_idx = frame_obj.get("chirp_end_idx")
+    num_loops = frame_obj.get("num_loops")
+    num_frames = frame_obj.get("num_frames")
+    frame_periodicity_ms = frame_obj.get("frame_periodicity_ms")
+
+    if not isinstance(chirp_start_idx, int):
+        return None
+    if not isinstance(chirp_end_idx, int):
+        return None
+    if not isinstance(num_loops, int):
+        return None
+    if not isinstance(num_frames, int):
+        return None
+    if not isinstance(frame_periodicity_ms, (int, float)):
+        return None
+
+    frame = types.fmcw.FrameCfg(
+        chirp_start_idx=chirp_start_idx,
+        chirp_end_idx=chirp_end_idx,
+        num_loops=num_loops,
+        num_frames=num_frames,
+        frame_periodicity_ms=float(frame_periodicity_ms),
+    )
+
+    return types.fmcw.FmcwCfg(chirp=chirp, frame=frame)
+
+
+def _parse_radar_cfg(json_cfg: dict[str, Any]) ->  types.radar.RadarCfg | None:
 
     output_path = json_cfg.get("output_path")
     if not isinstance(output_path, str):
@@ -188,16 +228,24 @@ def _parse_radar_cfg(json_cfg: dict[str, Any]) ->  radar.RadarCfg | None:
     if sfcw_cfg is None:
         return None
 
-    return radar.RadarCfg(
+    fmcw_cfg: types.fmcw.FmcwCfg | None = None
+    fmcw_raw = json_cfg.get("fmcw_cfg")
+    if isinstance(fmcw_raw, dict):
+        fmcw_cfg = _parse_fmcw_cfg(fmcw_raw)
+        if fmcw_cfg is None:
+            return None
+
+    return types.radar.RadarCfg(
         output_path=output_path,
         channel_cfg=channel_cfg,
         adc_cfg=adc_cfg,
         profile_cfg=profile_cfg,
         sfcw_cfg=sfcw_cfg,
+        fmcw_cfg=fmcw_cfg,
     )
 
 
-def load_cfg(path: str | Path) ->  radar.RadarCfg | None:
+def load_cfg(path: str | Path) ->  types.radar.RadarCfg | None:
     json_cfg = _load_json5(path)
     radar_cfg = _parse_radar_cfg(json_cfg)
     if radar_cfg is None:
