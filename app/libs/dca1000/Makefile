@@ -15,7 +15,7 @@ CXXFLAGS = -std=c++14 -shared -fPIC -static-libgcc -static-libstdc++ $(EXTERNAL_
 
 LDFLAGS = $(shell $(PYTHON_CONFIG) --ldflags) -L/mingw64/lib -lmingw32 -mwindows $(EXTERNAL_LIBS)
 
-SRC = radar_api.cpp
+SRC = radar_api.cpp event_handler.cpp
 
 TARGET = ../../src/hwctl/dca1000/radar_api.pyd
 
