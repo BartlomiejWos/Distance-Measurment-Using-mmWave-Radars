@@ -1,51 +1,87 @@
 import logging
 import os
+import sys
 import threading
 from pathlib import Path
+from enum import Enum
 
-# ReleaseRF_API.dll lives in libs/dca1000/ — must be registered
-# BEFORE importing the .pyd that links against it.
-_TI_EXT_DIR = Path(__file__).resolve().parents[3] / "libs" / "dca1000" / "ti-external"
-if _TI_EXT_DIR.is_dir():
-    os.add_dll_directory(str(_TI_EXT_DIR))
 
-from . import radar_api as _ra  # noqa: E402
+class DCA1000CmdCode(Enum):
+    CAPTURE_DONE = 0x08
+    SYSTEM_ERROR = 0x0A
+    SUCCESS_STATUS = 0
+    FAILURE_STATUS = -1
+
+
+if getattr(sys, "frozen", False):
+    _base = Path(sys._MEIPASS)
+    os.add_dll_directory(str(_base))
+    import importlib
+    radar_api = importlib.import_module("radar_api")
+else:
+    _TI_EXT_DIR = Path(__file__) \
+        .resolve().parents[2] / "libs" / "dca1000" / "ti-external"
+    if _TI_EXT_DIR.is_dir():
+        os.add_dll_directory(str(_TI_EXT_DIR))
+    from . import radar_api
+
 
 class DCA1000:
     def __init__(self, logger: logging.Logger):
-        self._ra = _ra
-        self._logger = logger
-        self._record_done = threading.Event()
+        self.radar_api = radar_api
+        self.logger = logger
+        self.record_done = threading.Event()
 
     def _event_callback(self, cmd: int, status: int) -> None:
-        if cmd == 0x0A and status == 0x8:
-            self._logger.debug("Record-done callback fired")
-            self._record_done.set()
+        if cmd == DCA1000CmdCode.SYSTEM_ERROR.value \
+                and status == DCA1000CmdCode.CAPTURE_DONE.value:
+            self.logger.debug("Record-done callback fired")
+            self.record_done.set()
 
-    def init(self) -> None:
-        self._ra.dca1000_config_init()
-        self._ra.register_event_callback(self._event_callback)
-        self._logger.info("DCA1000 initialised")
+    def init(self) -> bool:
+        ret = self.radar_api.dca1000_config_init()
+        if ret != DCA1000CmdCode.SUCCESS_STATUS.value:
+            self.logger.error("Failed to initialize DCA1000")
+            return False
+        self.radar_api.register_event_callback(self._event_callback)
+        self.logger.info("DCA1000 initialised")
+        return True
 
-    def set_file_base_path(self, path: str) -> None:
-        self._ra.dca_set_file_base_path(path)
+    def set_file_base_path(self, path: str) -> bool:
+        ret = self.radar_api.dca_set_file_base_path(path)
+        if ret != DCA1000CmdCode.SUCCESS_STATUS.value:
+            self.logger.error("Failed to set file base path")
+            return False
+        return True
 
-    def set_file_prefix(self, prefix: str) -> None:
-        self._ra.dca_set_file_prefix(prefix)
+    def set_file_prefix(self, prefix: str) -> bool:
+        ret = self.radar_api.dca_set_file_prefix(prefix)
+        if ret != DCA1000CmdCode.SUCCESS_STATUS.value:
+            self.logger.error("Failed to set file prefix")
+            return False
+        return True
 
-    def trigger_record(self) -> None:
-        self._record_done.clear()
-        self._ra.dca_trigger_record()
+    def trigger_record(self) -> bool:
+        self.record_done.clear()
+        ret = self.radar_api.dca_trigger_record()
+        if ret != DCA1000CmdCode.SUCCESS_STATUS.value:
+            self.logger.error("Failed to trigger record")
+            return False
+        return True
 
-    def stop_record(self) -> None:
-        self._ra.dca_stop_record()
+    def stop_record(self) -> bool:
+        ret = self.radar_api.dca_stop_record()
+        if ret != DCA1000CmdCode.SUCCESS_STATUS.value:
+            self.logger.error("Failed to stop record")
+            return False
+        return True
 
     def wait_for_record_done(self, timeout: float) -> bool:
-        done = self._record_done.wait(timeout)
-        self._record_done.clear()
+        done = self.record_done.wait(timeout)
+        self.record_done.clear()
         return done
 
     def deinit(self) -> None:
-        self._ra.dca1000_deinit()
-        self._record_done.clear()
-        self._logger.info("DCA1000 deinitialized")
+        self.radar_api.dca1000_deinit()
+        self.record_done.clear()
+        self.logger.info("DCA1000 deinitialized")

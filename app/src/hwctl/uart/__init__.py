@@ -1,3 +1,3 @@
-from .uart import PySerialUart
+from .uart import Uart
 
-__all__ = ["PySerialUart"]
+__all__ = ["Uart"]

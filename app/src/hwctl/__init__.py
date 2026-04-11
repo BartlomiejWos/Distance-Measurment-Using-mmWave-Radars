@@ -1,13 +1,13 @@
 import logging
-from src.ports.uart import UartPort
-from src.ports.dca1000 import DCA1000Port
+from src.ports.uart import Uart
+from src.ports.dca1000 import DCA1000
 
 
 class HwCtl:
     def __init__(
         self,
-        uart: UartPort,
-        radar_api: DCA1000Port,
+        uart: Uart,
+        radar_api: DCA1000,
         logger: logging.Logger,
     ) -> None:
         self.uart = uart
