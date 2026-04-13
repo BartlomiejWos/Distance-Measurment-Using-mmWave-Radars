@@ -15,7 +15,7 @@ class DFEOutputMode:
         return self._value
 
     @classmethod
-    def from_int(cls, value: int) -> "DFEOutputMode | None":
+    def from_int(cls, value: object) -> "DFEOutputMode | None":
         if not isinstance(value, int):
             return None
         if value not in (cls._FRAME_BASED_CHIRPS, cls._ADV_FRAME_CFG):
@@ -49,7 +49,7 @@ class RxChannelMask:
         return self._value
 
     @classmethod
-    def from_int(cls, value: int) -> "RxChannelMask | None":
+    def from_int(cls, value: object) -> "RxChannelMask | None":
         if not isinstance(value, int):
             return None
         if value not in cls._RX:
@@ -68,6 +68,7 @@ class TxChannelMask:
     _ALLOWED = {
         TX1,
     }
+
     def __init__(self, value: int) -> None:
         self._value = value
 
@@ -75,7 +76,7 @@ class TxChannelMask:
         return self._value
 
     @classmethod
-    def from_int(cls, value: int) -> "TxChannelMask | None":
+    def from_int(cls, value: object) -> "TxChannelMask | None":
         if not isinstance(value, int):
             return None
         if value not in cls._ALLOWED:

@@ -1,11 +1,13 @@
-from __future__ import annotations
+import logging
 
 from .types.radar import RadarCfg
 from . import types
 
 _MAX_CHIRPS_PER_FRAME = 512
-_MAX_START_FREQ_VAR_HZ = 450_000_000
-def _ghz_bucket(freq_hz: int) -> int:
+_MAX_START_FREQ_VAR_HZ = 450e6
+
+
+def _ghz_to_hz(freq_hz: int) -> int:
     return freq_hz // 1_000_000_000
 
 
@@ -39,7 +41,8 @@ def _build_preamble(cfg: RadarCfg) -> list[str]:
         f" {types.channel.SOC_CASCADING_NA}",
         f"adcCfg {types.adc.ADC_NUM_BITS_16}"
         f" {cfg.adc_cfg.adc_output_fmt.to_int()}",
-        f"adcbufCfg {types.adc.SUBFRAME_IDX_LEGACY} {types.adc.ADC_BUF_OUTPUT_FMT_COMPLEX}"
+        f"adcbufCfg {types.adc.SUBFRAME_IDX_LEGACY}"
+        f" {types.adc.ADC_BUF_OUTPUT_FMT_COMPLEX}"
         f" {types.adc.SAMPLE_SWAP_Q_LSB_I_MSB} {types.adc.CHAN_NON_INTERLEAVED}"
         f" {types.adc.CHIRP_THRESHOLD}",
         f"lowPower {types.adc.LOW_POWER_DONT_CARE}"
@@ -48,7 +51,7 @@ def _build_preamble(cfg: RadarCfg) -> list[str]:
 
 
 def _needs_split(freq: int, base: int, count: int) -> bool:
-    if _ghz_bucket(freq) != _ghz_bucket(base):
+    if _ghz_to_hz(freq) != _ghz_to_hz(base):
         return True
     if (freq - base) >= _MAX_START_FREQ_VAR_HZ:
         return True
@@ -66,13 +69,11 @@ def _build_frame_commands(
 ) -> list[str]:
     cmds = list(preamble)
     cmds.append(_build_profile_cmd(base_hz, cfg))
-
     for i, f_abs in enumerate(freqs):
         start_freq_var = f_abs - base_hz
         cmds.append(
             f"chirpCfg {i} {i} 0 {start_freq_var} 0 0 0 {tx_mask}"
         )
-
     cmds.append(
         f"frameCfg {types.sfcw.CHIRP_START_IDX} {len(freqs) - 1}"
         f" {types.sfcw.NUMBER_OF_LOOPS} {types.sfcw.NUMBER_OF_FRAMES}"
@@ -88,15 +89,17 @@ def _build_frame_commands(
     return cmds
 
 
-def build_fmcw_frames(cfg: RadarCfg) -> list[list[str]]:
+def build_fmcw_frames(cfg: RadarCfg,
+                      logger: logging.Logger
+                      ) -> list[list[str]] | None:
     fmcw = cfg.fmcw_cfg
     if fmcw is None:
-        raise ValueError("fmcw_cfg is required for FMCW mode")
-
+        logger.error("fmcw_cfg is required for FMCW mode")
+        return None
     preamble = _build_preamble(cfg)
     cmds = list(preamble)
-    cmds.append(_build_profile_cmd(int(round(cfg.sfcw_cfg.start_freq_hz)), cfg))
-
+    start_hz = int(round(fmcw.start_freq_hz))
+    cmds.append(_build_profile_cmd(start_hz, cfg))
     tx_mask = cfg.channel_cfg.tx_channel_mask.to_int()
     chirp = fmcw.chirp
     cmds.append(
@@ -108,7 +111,6 @@ def build_fmcw_frames(cfg: RadarCfg) -> list[list[str]]:
         f" {types.fmcw.ADC_START_TIME_VAR}"
         f" {tx_mask}"
     )
-
     frame = fmcw.frame
     cmds.append(
         f"frameCfg {frame.chirp_start_idx} {frame.chirp_end_idx}"
@@ -122,20 +124,26 @@ def build_fmcw_frames(cfg: RadarCfg) -> list[list[str]]:
         f" {types.lvds.DATA_FMT_ADC}"
         f" {types.lvds.ENABLE_SW_OFF}"
     )
+    logger.debug("Successfully built UART config for FMCW mode")
     return [cmds]
 
 
-def build_sfcw_frames(cfg: RadarCfg) -> list[list[str]]:
+def build_sfcw_frames(cfg: RadarCfg,
+                      logger: logging.Logger
+                      ) -> list[list[str]] | None:
     sfcw = cfg.sfcw_cfg
-    start = int(round(sfcw.start_freq_hz))
-    end = int(round(sfcw.end_freq_hz))
-    df = int(round(sfcw.df_hz))
-
+    if sfcw is None:
+        logger.error("SFCW config is required for SFCW mode")
+        return None
+    start = int(round(sfcw.start_freq_hz.to_float()))
+    end = int(round(sfcw.end_freq_hz.to_float()))
+    df = int(round(sfcw.df_hz.to_float()))
     if end <= start:
-        raise ValueError("end_freq_hz must be > start_freq_hz")
+        logger.error("end_freq_hz must be > start_freq_hz")
+        return None
     if df <= 0:
-        raise ValueError("df_hz must be > 0")
-
+        logger.error("df_hz must be > 0")
+        return None
     preamble = _build_preamble(cfg)
     tx_mask = cfg.channel_cfg.tx_channel_mask.to_int()
 
@@ -158,7 +166,6 @@ def build_sfcw_frames(cfg: RadarCfg) -> list[list[str]]:
 
         current.append(f)
         f += df
-
     if current:
         frames.append(
             _build_frame_commands(
@@ -166,5 +173,5 @@ def build_sfcw_frames(cfg: RadarCfg) -> list[list[str]]:
                 cfg, tx_mask,
             )
         )
-
+    logger.debug("Successfully built UART config for SFCW mode")
     return frames

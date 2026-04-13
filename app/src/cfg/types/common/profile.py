@@ -2,10 +2,12 @@ from dataclasses import dataclass
 
 PROFILE_ID_DEFAULT = 0
 
+
 class StartFreqGHz:
     _FREQ_LIMIT_LOW_GHZ = 76.0
     _FREQ_LIMIT_HIGH_GHZ = 81.0
     _FREQ_EXCLUDED_GHZ = {78.0}
+
     def __init__(self, value: float) -> None:
         self._value = value
 
@@ -13,7 +15,7 @@ class StartFreqGHz:
         return self._value
 
     @classmethod
-    def from_float(cls, value: float) -> "StartFreqGHz | None":
+    def from_float(cls, value: object) -> "StartFreqGHz | None":
         if not isinstance(value, (int, float)):
             return None
         v = float(value)
@@ -32,7 +34,7 @@ class IdleTimeUsec:
         return self._value
 
     @classmethod
-    def from_float(cls, value: float) -> "IdleTimeUsec | None":
+    def from_float(cls, value: object) -> "IdleTimeUsec | None":
         if not isinstance(value, (int, float)):
             return None
         v = float(value)
@@ -49,7 +51,7 @@ class AdcStartTimeUsec:
         return self._value
 
     @classmethod
-    def from_float(cls, value: float) -> "AdcStartTimeUsec | None":
+    def from_float(cls, value: object) -> "AdcStartTimeUsec | None":
         if not isinstance(value, (int, float)):
             return None
         v = float(value)
@@ -66,7 +68,7 @@ class RampEndTimeUsec:
         return self._value
 
     @classmethod
-    def from_float(cls, value: float) -> "RampEndTimeUsec | None":
+    def from_float(cls, value: object) -> "RampEndTimeUsec | None":
         if not isinstance(value, (int, float)):
             return None
         v = float(value)
@@ -83,7 +85,7 @@ class TxPhaseShifter:
         return self._value
 
     @classmethod
-    def from_int(cls, value: int) -> "TxPhaseShifter | None":
+    def from_int(cls, value: object) -> "TxPhaseShifter | None":
         if not isinstance(value, int):
             return None
         if value < 0:
@@ -99,7 +101,7 @@ class FreqSlopeConst:
         return self._value
 
     @classmethod
-    def from_float(cls, value: float) -> "FreqSlopeConst | None":
+    def from_float(cls, value: object) -> "FreqSlopeConst | None":
         if not isinstance(value, (int, float)):
             return None
         v = float(value)
@@ -116,7 +118,7 @@ class NumAdcSamples:
         return self._value
 
     @classmethod
-    def from_int(cls, value: int) -> "NumAdcSamples | None":
+    def from_int(cls, value: object) -> "NumAdcSamples | None":
         if not isinstance(value, int):
             return None
         if value <= 0:
@@ -140,7 +142,7 @@ class HpfCornerFreq1:
         return self._value
 
     @classmethod
-    def from_int(cls, value: int) -> "HpfCornerFreq1 | None":
+    def from_int(cls, value: object) -> "HpfCornerFreq1 | None":
         if not isinstance(value, int):
             return None
         if value not in cls._VALID:
@@ -162,7 +164,7 @@ class HpfCornerFreq2:
         return self._value
 
     @classmethod
-    def from_int(cls, value: int) -> "HpfCornerFreq2 | None":
+    def from_int(cls, value: object) -> "HpfCornerFreq2 | None":
         if not isinstance(value, int):
             return None
         if value not in cls._VALID:
@@ -178,7 +180,7 @@ class DigOutSampleRate:
         return self._value
 
     @classmethod
-    def from_int(cls, value: int) -> "DigOutSampleRate | None":
+    def from_int(cls, value: object) -> "DigOutSampleRate | None":
         if not isinstance(value, int):
             return None
         if value <= 0:
@@ -194,7 +196,7 @@ class TxStartTimeUsec:
         return self._value
 
     @classmethod
-    def from_float(cls, value: float) -> "TxStartTimeUsec | None":
+    def from_float(cls, value: object) -> "TxStartTimeUsec | None":
         if not isinstance(value, (int, float)):
             return None
         v = float(value)
@@ -211,7 +213,7 @@ class TxOutPower:
         return self._value
 
     @classmethod
-    def from_int(cls, value: int) -> "TxOutPower | None":
+    def from_int(cls, value: object) -> "TxOutPower | None":
         if not isinstance(value, int):
             return None
         if value < 0:
@@ -227,7 +229,7 @@ class RxGain:
         return self._value
 
     @classmethod
-    def from_int(cls, value: int) -> "RxGain | None":
+    def from_int(cls, value: object) -> "RxGain | None":
         if not isinstance(value, int):
             return None
         if value < 0:

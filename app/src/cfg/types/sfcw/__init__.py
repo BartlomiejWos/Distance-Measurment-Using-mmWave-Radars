@@ -5,6 +5,9 @@ from .sfcw import (
     FRAME_PERIODICITY_MS,
     TRIGGER_SELECT_SW,
     FRAME_TRIGGER_DELAY_MS,
+    SfcwStartFreqHz,
+    SfcwEndFreqHz,
+    DfHz,
     SfcwCfg,
 )
 
@@ -16,5 +19,8 @@ __all__ = [
     "FRAME_PERIODICITY_MS",
     "TRIGGER_SELECT_SW",
     "FRAME_TRIGGER_DELAY_MS",
+    "SfcwStartFreqHz",
+    "SfcwEndFreqHz",
+    "DfHz",
     "SfcwCfg",
 ]

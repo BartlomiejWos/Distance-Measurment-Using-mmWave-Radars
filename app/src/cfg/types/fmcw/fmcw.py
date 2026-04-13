@@ -29,5 +29,6 @@ class FrameCfg:
 
 @dataclass
 class FmcwCfg:
+    start_freq_hz: float
     chirp: ChirpCfg
     frame: FrameCfg

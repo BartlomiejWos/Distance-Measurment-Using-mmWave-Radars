@@ -68,7 +68,26 @@ htmlcov/
 # =========================
 postproc/data/
 postproc/lab_data/
+docs/
 docs.txt
+
+# =========================
+# Firmware — build artifacts & dead SoC variants
+# =========================
+firmware/obj_xwr18xx/
+firmware/mmw_configPkg_mss_xwr18xx/
+firmware/mmwave_Studio_cli_xwr18xx_mss.map
+firmware/mmwave_Studio_cli_xwr18xx_mss.xer4f
+firmware/mmw_mss_per4ft.rov.xs
+firmware/crcFile
+firmware/ti-arm-clang/
+firmware/profiles/
+firmware/mss/mss_main_2544.c
+firmware/mss/mss_main_29xx.c
+firmware/mss/mmw_lvds_stream_2544.c
+firmware/mss/mmw_lvds_stream_29xx.c
+firmware/mss/osi_freertos.c
+firmware/mss/r4f_linker_xwr18xx.cmd
 
 # UART / runtime artifacts
 *.dat
