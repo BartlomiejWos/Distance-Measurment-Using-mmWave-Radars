@@ -13,6 +13,17 @@ It demonstrates a full signal chain from radar configuration, data acquisition, 
   - Host application in Python for **data acquisition and radar configuration** (based on TI mmWave driver DLL + PyBind11)
   - MATLAB scripts for **binary data parsing and DSP analysis**
 
+## Firmware Build
+
+The custom MSS firmware is built using **Code Composer Studio (CCS)** with the **TI mmWave SDK**.
+
+### Build Steps
+
+1. Open CCS and import the project: **File > Import > CCS Projects**
+2. Browse to `firmware/1843/` and select `studio_cli_xwr18xx.projectspec`
+3. Build: **Project > Build All**
+4. Output binary: `mmwave_Studio_cli_xwr18xx.bin` (flash via UniFlash)
+
 ---
 Project is ongoing.
 
