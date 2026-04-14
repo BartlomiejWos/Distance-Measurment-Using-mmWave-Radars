@@ -15,3 +15,6 @@ extern py::function py_event_callback;
 
 void EthernetEventHandlercallback(UINT16 u16CmdCode, UINT16 u16Status);
 void DecodeCommandStatus(SINT32 s32Status, const SINT8 *strCommand);
+void inlineStatsCallback(strRFDCCard_InlineProcStats inlineStats,
+                         bool bOutOfSeqSetFlag,
+                         UINT8 u8DataIndex);

@@ -39,8 +39,8 @@ static strRecConfigMode gsRecConfigMode = {
 
 
 static strStartRecConfigMode gsStartRecConfigMode = {
-    .s8FileBasePath = "",  
-    .s8FilePrefix = "",                    
+    .s8FileBasePath = "C:\\Users\\Asus\\Desktop\\REPOZYTORIUM\\Distance-Measurment-Using-mmWave-Radars\\postproc\\data",
+    .s8FilePrefix = "Capture",
     .bSequenceNumberEnable = true,                  
     .bMsbToggleEnable = false,                     
     .bReorderEnable = false,                        
@@ -179,6 +179,16 @@ int dca1000_config_init()
     if (s32CliStatus != SUCCESS_STATUS)
     {
         printf("[ERROR] Config mode disconnect failed. [error %d]\n", s32CliStatus);
+        return FAILURE_STATUS;
+    }
+    /* Required: DLL's UDP receive thread dereferences inline-stats callback
+     * on each packet; without registration that pointer is uninitialized →
+     * 0xC0000005 on first packet burst. Stub handler is enough. */
+    s32CliStatus = RecInlineProcStats_EventRegister(
+        (INLINE_PROC_HANDLER)inlineStatsCallback);
+    if (s32CliStatus != SUCCESS_STATUS)
+    {
+        printf("[ERROR] Inline stats callback register failed. [error %d]\n", s32CliStatus);
         return FAILURE_STATUS;
     }
     /** API Call - Ethernet connection                                       */

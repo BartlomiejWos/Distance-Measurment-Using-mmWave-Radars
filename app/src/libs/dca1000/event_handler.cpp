@@ -199,3 +199,21 @@ void EthernetEventHandlercallback(UINT16 u16CmdCode, UINT16 u16Status)
     else
         handle_cmd_code(u16CmdCode, u16Status);
 }
+
+
+void inlineStatsCallback(strRFDCCard_InlineProcStats inlineStats,
+                         bool                        bOutOfSeqSetFlag,
+                         UINT8                       u8DataIndex)
+{
+#if 0 /* copied from DCA application code but disabled for this tool.*/
+	if (bReady)
+	{
+		/** Copying global variables and trigger the event to update    */
+		memcpy(&gInlineStats, &inlineStats, sizeof(strRFDCCard_InlineProcStats));
+		gbOutOfSeqSetFlag = bOutOfSeqSetFlag;
+		gu8DataIndex = u8DataIndex;
+
+		osalObj_Rec.SignalEvent(&sgnInlineStsUpdateWaitEvent);
+	}
+#endif
+}
