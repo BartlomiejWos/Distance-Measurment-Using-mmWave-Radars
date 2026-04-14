@@ -13,9 +13,8 @@ TARGETS=(
     src/cfg
 )
 
-echo "=== flake8 ==="
-flake8 --config scripts/.flake8 "${TARGETS[@]}"
-
 echo "=== mypy ==="
 mypy --config-file scripts/mypy.ini "${TARGETS[@]}"
 
+echo "=== flake8 ==="
+flake8 --config scripts/.flake8 "${TARGETS[@]}"
