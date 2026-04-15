@@ -2,7 +2,7 @@ from typing import Any
 from pathlib import Path
 import json5
 
-from src.cfg import types
+from cfg import types
 
 
 def _load_json5(path: str | Path) -> dict[str, Any]:

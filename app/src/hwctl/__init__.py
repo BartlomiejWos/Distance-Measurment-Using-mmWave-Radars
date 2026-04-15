@@ -1,6 +1,6 @@
 import logging
-from src.ports.uart import Uart
-from src.ports.dca1000 import DCA1000
+from ports.uart import Uart
+from ports.dca1000 import DCA1000
 
 
 class HwCtl:
