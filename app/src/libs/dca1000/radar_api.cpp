@@ -39,7 +39,7 @@ static strRecConfigMode gsRecConfigMode = {
 
 
 static strStartRecConfigMode gsStartRecConfigMode = {
-    .s8FileBasePath = "C:\\Users\\Asus\\Desktop\\REPOZYTORIUM\\Distance-Measurment-Using-mmWave-Radars\\postproc\\data",
+    .s8FileBasePath = "",
     .s8FilePrefix = "Capture",
     .bSequenceNumberEnable = true,                  
     .bMsbToggleEnable = false,                     

@@ -21,7 +21,7 @@ class NumLoops:
 
 
 class NumFrames:
-    MIN = 0
+    MIN = 1
     MAX = 65535
 
     def __init__(self, value: int) -> None:

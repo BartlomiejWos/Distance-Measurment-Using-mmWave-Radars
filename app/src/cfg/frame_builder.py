@@ -102,12 +102,11 @@ def build_fmcw_frames(cfg: RadarCfg,
         return None
     preamble = _build_preamble(cfg)
     cmds = list(preamble)
-    start_hz = int(round(fmcw.start_freq_hz))
+    start_hz = int(round(fmcw.start_freq_hz.to_float()))
     cmds.append(_build_profile_cmd(start_hz, cfg))
     tx_mask = cfg.channel_cfg.tx_channel_mask.to_int()
-    chirp = fmcw.chirp
     cmds.append(
-        f"chirpCfg {chirp.start_idx} {chirp.end_idx}"
+        f"chirpCfg {types.fmcw.CHIRP_START_IDX} {types.fmcw.CHIRP_END_IDX}"
         f" {types.profile.PROFILE_ID_DEFAULT}"
         f" {types.fmcw.START_FREQ_VAR}"
         f" {types.fmcw.FREQ_SLOPE_VAR}"
@@ -117,7 +116,7 @@ def build_fmcw_frames(cfg: RadarCfg,
     )
     frame = fmcw.frame
     cmds.append(
-        f"frameCfg {fmcw.chirp_start_idx} {fmcw.chirp_end_idx}"
+        f"frameCfg {types.fmcw.CHIRP_START_IDX} {types.fmcw.CHIRP_END_IDX}"
         f" {frame.num_loops.to_int()} {frame.num_frames.to_int()}"
         f" {frame.frame_periodicity_ms.to_float()}"
         f" {types.fmcw.TRIGGER_SELECT_SW}"
@@ -159,6 +158,8 @@ def build_sfcw_frames(cfg: RadarCfg,
 
     while f < end:
         if current and _needs_split(f, profile_base, len(current)):
+            logger.debug("SFCW split: %d tones, base=%d Hz, next base=%d Hz",
+                         len(current), profile_base, f)
             frames.append(
                 _build_frame_commands(
                     profile_base, current, preamble,
@@ -178,5 +179,7 @@ def build_sfcw_frames(cfg: RadarCfg,
                 cfg, tx_mask,
             )
         )
-    logger.debug("Successfully built UART config for SFCW mode")
+    total_tones = (end - start) // df
+    logger.info("Built %d SFCW frame(s) from %d tones",
+                len(frames), total_tones)
     return frames
