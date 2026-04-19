@@ -64,7 +64,6 @@ int dca_set_file_base_path(const std::string& path) {
     return SUCCESS_STATUS;
 }
 
-
 int dca_set_file_prefix(const std::string& prefix) {
     size_t max_path_size = sizeof(gsStartRecConfigMode.s8FilePrefix);
     if (prefix.size() >= max_path_size) {
@@ -285,7 +284,7 @@ void dca1000_deinit(void)
 
 PYBIND11_MODULE(radar_api, module)
 {
-    module.doc() = "Python bindings for RF FPGA version API via pybind11";
+    module.doc() = "Python bindings for RFDC FPGA Card DCA1000 API";
     module.def("register_event_callback", &register_event_callback);
     module.def("dca_set_file_base_path", &dca_set_file_base_path);
     module.def("dca_set_file_prefix", &dca_set_file_prefix);

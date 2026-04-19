@@ -74,10 +74,14 @@ def _build_frame_commands(
         cmds.append(
             f"chirpCfg {i} {i} 0 {start_freq_var} 0 0 0 {tx_mask}"
         )
+    sfcw = cfg.sfcw_cfg
+    assert sfcw is not None
+    frame = sfcw.frame
     cmds.append(
         f"frameCfg {types.sfcw.CHIRP_START_IDX} {len(freqs) - 1}"
-        f" {types.sfcw.NUMBER_OF_LOOPS} {types.sfcw.NUMBER_OF_FRAMES}"
-        f" {types.sfcw.FRAME_PERIODICITY_MS} {types.sfcw.TRIGGER_SELECT_SW}"
+        f" {frame.num_loops.to_int()} {frame.num_frames.to_int()}"
+        f" {frame.frame_periodicity_ms.to_float()}"
+        f" {types.sfcw.TRIGGER_SELECT_SW}"
         f" {types.sfcw.FRAME_TRIGGER_DELAY_MS}"
     )
     cmds.append(
@@ -104,7 +108,7 @@ def build_fmcw_frames(cfg: RadarCfg,
     chirp = fmcw.chirp
     cmds.append(
         f"chirpCfg {chirp.start_idx} {chirp.end_idx}"
-        f" {types.fmcw.PROFILE_ID}"
+        f" {types.profile.PROFILE_ID_DEFAULT}"
         f" {types.fmcw.START_FREQ_VAR}"
         f" {types.fmcw.FREQ_SLOPE_VAR}"
         f" {types.fmcw.IDLE_TIME_VAR}"
@@ -113,9 +117,10 @@ def build_fmcw_frames(cfg: RadarCfg,
     )
     frame = fmcw.frame
     cmds.append(
-        f"frameCfg {frame.chirp_start_idx} {frame.chirp_end_idx}"
-        f" {frame.num_loops} {frame.num_frames}"
-        f" {frame.frame_periodicity_ms} {types.fmcw.TRIGGER_SELECT_SW}"
+        f"frameCfg {fmcw.chirp_start_idx} {fmcw.chirp_end_idx}"
+        f" {frame.num_loops.to_int()} {frame.num_frames.to_int()}"
+        f" {frame.frame_periodicity_ms.to_float()}"
+        f" {types.fmcw.TRIGGER_SELECT_SW}"
         f" {types.fmcw.FRAME_TRIGGER_DELAY_MS}"
     )
     cmds.append(

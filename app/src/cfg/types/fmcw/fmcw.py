@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 
-from ..common.profile import PROFILE_ID_DEFAULT
+from ..common.frame import FrameCfg
 
-PROFILE_ID = PROFILE_ID_DEFAULT
 START_FREQ_VAR = 0
 FREQ_SLOPE_VAR = 0
 IDLE_TIME_VAR = 0
@@ -19,16 +18,9 @@ class ChirpCfg:
 
 
 @dataclass
-class FrameCfg:
-    chirp_start_idx: int
-    chirp_end_idx: int
-    num_loops: int
-    num_frames: int
-    frame_periodicity_ms: float
-
-
-@dataclass
 class FmcwCfg:
     start_freq_hz: float
+    chirp_start_idx: int
+    chirp_end_idx: int
     chirp: ChirpCfg
     frame: FrameCfg

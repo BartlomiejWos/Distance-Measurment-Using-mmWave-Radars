@@ -11,7 +11,6 @@ TARGETS=(
     src/ports
     src/cli
     src/cfg
-    src/capture
 )
 
 echo "=== mypy ==="

@@ -29,6 +29,7 @@
   },
 
   fmcw_cfg: {
+    start_freq_hz: 77e9,       // [Hz] chirp start frequency
     chirp: {
       start_idx: 0,
       end_idx: 0,
@@ -37,7 +38,7 @@
       chirp_start_idx: 0,
       chirp_end_idx: 0,
       num_loops: 128,          // 1-255
-      num_frames: 1,           // 0-65535, 0 = infinite
+      num_frames: 2,           // 0-65535, 0 = infinite
       frame_periodicity_ms: 50,
     },
   },

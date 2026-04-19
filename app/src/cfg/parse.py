@@ -130,6 +130,26 @@ def _parse_profile_cfg(json_cfg: dict[str, Any]
     )
 
 
+def _parse_frame_cfg(frame_obj: dict[str, Any]
+                     ) -> types.frame.FrameCfg | None:
+    num_loops = types.frame.NumLoops.from_int(frame_obj.get("num_loops"))
+    if num_loops is None:
+        return None
+    num_frames = types.frame.NumFrames.from_int(frame_obj.get("num_frames"))
+    if num_frames is None:
+        return None
+    frame_periodicity_ms = types.frame.FramePeriodicityMs.from_float(
+        frame_obj.get("frame_periodicity_ms")
+    )
+    if frame_periodicity_ms is None:
+        return None
+    return types.frame.FrameCfg(
+        num_loops=num_loops,
+        num_frames=num_frames,
+        frame_periodicity_ms=frame_periodicity_ms,
+    )
+
+
 def _parse_sfcw_cfg(json_cfg: dict[str, Any]) -> types.sfcw.SfcwCfg | None:
     start = types.sfcw.SfcwStartFreqHz.from_float(
         json_cfg.get("start_freq_hz")
@@ -146,10 +166,17 @@ def _parse_sfcw_cfg(json_cfg: dict[str, Any]) -> types.sfcw.SfcwCfg | None:
     )
     if df is None:
         return None
+    frame_obj = json_cfg.get("frame")
+    if not isinstance(frame_obj, dict):
+        return None
+    frame = _parse_frame_cfg(frame_obj)
+    if frame is None:
+        return None
     return types.sfcw.SfcwCfg(
         start_freq_hz=start,
         end_freq_hz=end,
         df_hz=df,
+        frame=frame,
     )
 
 
@@ -173,24 +200,13 @@ def _parse_fmcw_cfg(json_cfg: dict[str, Any]
     chirp_end_idx = frame_obj.get("chirp_end_idx")
     if not isinstance(chirp_end_idx, int):
         return None
-    num_loops = frame_obj.get("num_loops")
-    if not isinstance(num_loops, int):
+    frame = _parse_frame_cfg(frame_obj)
+    if frame is None:
         return None
-    num_frames = frame_obj.get("num_frames")
-    if not isinstance(num_frames, int):
-        return None
-    frame_periodicity_ms = frame_obj.get("frame_periodicity_ms")
-    if not isinstance(frame_periodicity_ms, (int, float)):
-        return None
-    frame = types.fmcw.FrameCfg(
-        chirp_start_idx=chirp_start_idx,
-        chirp_end_idx=chirp_end_idx,
-        num_loops=num_loops,
-        num_frames=num_frames,
-        frame_periodicity_ms=float(frame_periodicity_ms),
-    )
     return types.fmcw.FmcwCfg(
         start_freq_hz=float(start_freq_hz),
+        chirp_start_idx=chirp_start_idx,
+        chirp_end_idx=chirp_end_idx,
         chirp=chirp,
         frame=frame,
     )
@@ -200,7 +216,6 @@ def _parse_radar_cfg(json_cfg: dict[str, Any]
                      ) -> types.radar.RadarCfg | None:
     has_sfcw = "sfcw_cfg" in json_cfg
     has_fmcw = "fmcw_cfg" in json_cfg
-
     if has_sfcw and has_fmcw:
         print("[ERROR] Config has both sfcw_cfg and fmcw_cfg"
               " — use separate files")
@@ -208,39 +223,31 @@ def _parse_radar_cfg(json_cfg: dict[str, Any]
     if not has_sfcw and not has_fmcw:
         print("[ERROR] Config missing sfcw_cfg or fmcw_cfg")
         return None
-
     output_path = json_cfg.get("output_path")
     if not isinstance(output_path, str):
         return None
-
     com_port = json_cfg.get("com_port")
     if not isinstance(com_port, str):
         return None
-
     channel_cfg = _parse_channel_cfg(json_cfg["channel_cfg"])
     if channel_cfg is None:
         return None
-
     adc_cfg = _parse_adc_cfg(json_cfg["adc_cfg"])
     if adc_cfg is None:
         return None
-
     profile_cfg = _parse_profile_cfg(json_cfg["profile_cfg"])
     if profile_cfg is None:
         return None
-
     sfcw_cfg: types.sfcw.SfcwCfg | None = None
     if has_sfcw:
         sfcw_cfg = _parse_sfcw_cfg(json_cfg["sfcw_cfg"])
         if sfcw_cfg is None:
             return None
-
     fmcw_cfg: types.fmcw.FmcwCfg | None = None
     if has_fmcw:
         fmcw_cfg = _parse_fmcw_cfg(json_cfg["fmcw_cfg"])
         if fmcw_cfg is None:
             return None
-
     return types.radar.RadarCfg(
         output_path=output_path,
         com_port=com_port,

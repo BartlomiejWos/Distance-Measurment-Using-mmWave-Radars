@@ -1,9 +1,8 @@
 from dataclasses import dataclass
 
+from ..common.frame import FrameCfg
+
 CHIRP_START_IDX = 0
-NUMBER_OF_LOOPS = 1
-NUMBER_OF_FRAMES = 1
-FRAME_PERIODICITY_MS = 50
 TRIGGER_SELECT_SW = 1
 FRAME_TRIGGER_DELAY_MS = 0
 
@@ -77,3 +76,4 @@ class SfcwCfg:
     start_freq_hz: SfcwStartFreqHz
     end_freq_hz: SfcwEndFreqHz
     df_hz: DfHz
+    frame: FrameCfg

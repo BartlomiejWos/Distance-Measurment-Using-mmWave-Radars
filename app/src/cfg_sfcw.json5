@@ -32,5 +32,10 @@
     start_freq_hz: 79e9,    // 76 GHz
     end_freq_hz: 79.2e9,      // 78 GHz  ->  2 GHz BW, 4000 tones
     df_hz: 1e6,            // 500 kHz step
+    frame: {
+      num_loops: 1,              // 1-255 (≥4 for Doppler)
+      num_frames: 2,             // 0-65535, 0 = infinite
+      frame_periodicity_ms: 50,  // float, <= 50% duty cycle
+    },
   },
 }
