@@ -2,25 +2,25 @@ import argparse
 import logging
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 from cli import AppArgs
 from cfg.types.radar import RadarCfg
 from cfg.frame_builder import build_sfcw_frames, build_fmcw_frames
 
-from . import utils
 from . import record
+from . import utils
 
 
-def _build_frames(cfg: RadarCfg,
-                  logger: logging.Logger) -> list[list[str]] | None:
+def _build_cfg_frames(cfg: RadarCfg,
+                      logger: logging.Logger) -> list[list[str]] | None:
     if cfg.fmcw_cfg is not None:
         frames = build_fmcw_frames(cfg, logger)
     else:
         frames = build_sfcw_frames(cfg, logger)
     if frames is None:
         return None
-    logger.info("Builder produced %d frame(s)", len(frames))
     return frames
 
 
@@ -34,75 +34,84 @@ def _build_base_cmd(args: AppArgs) -> list[str]:
     return base_cmd
 
 
-def _spawn_warmup(base_cmd: list[str], cfg: RadarCfg,
-                  logger: logging.Logger) -> int:
-    logger.info("Spawning warmup subprocess")
-    rc = subprocess.run([*base_cmd, "--mode", "warmup",
-                         "--com-port", cfg.com_port,
-                         "--output-path", cfg.output_path]).returncode
-    if rc != 0:
-        logger.error("Warmup failed (rc=%d)", rc)
-        return rc
-    record.warmup_cleanup(Path(cfg.output_path), logger)
-    return 0
+def _spawn_frame_process(base_cmd: list[str],
+                         frame_file: str,
+                         prefix: str,
+                         idx: int,
+                         total: int,
+                         logger: logging.Logger) -> int:
+    logger.info(f"=== Frame {idx}/{total}: {prefix} ===")
+    rc = subprocess.run(
+        [*base_cmd, "--frame-file", frame_file, "--prefix", prefix]
+    ).returncode
+    if rc != utils.ReturnCode.SUCCESS.value:
+        logger.error(f"[{prefix}] subprocess failed (rc={rc})")
+    return rc
 
 
-def _spawn_frames(base_cmd: list[str], frames: list[list[str]],
-                  file_prefix: str, capture_dir: Path, com_port: str,
-                  logger: logging.Logger) -> int:
-    for i, commands in enumerate(frames):
-        prefix = f"{file_prefix}_f{i:03d}"
-        frame_file = utils.write_frame_file(commands, str(capture_dir), com_port)
-        cmd = [*base_cmd, "--mode", "capture",
-               "--frame-file", frame_file, "--prefix", prefix]
-        logger.info("Spawning capture subprocess for %s", prefix)
-        rc = subprocess.run(cmd).returncode
-        if rc != 0:
-            logger.error("Capture %s failed (rc=%d)", prefix, rc)
-            return rc
-    return 0
+def _spawn_warmup_process(base_cmd: list[str],
+                          logger: logging.Logger) -> int:
+    logger.info("[warmup] spawning subprocess")
+    rc = subprocess.run([*base_cmd, "--warmup"]).returncode
+    if rc != utils.ReturnCode.SUCCESS.value:
+        logger.error(f"[warmup] subprocess failed (rc={rc})")
+    return rc
 
 
-def run(args: AppArgs, cfg: RadarCfg, capture_dir: Path,
+def run(args: AppArgs,
+        cfg: RadarCfg,
+        capture_dir: Path,
         logger: logging.Logger) -> int:
-    """Multi-frame capture — one subprocess per frame for clean DLL state."""
-    frames = _build_frames(cfg, logger)
+    t0 = time.monotonic()
+    mode = "FMCW" if cfg.fmcw_cfg is not None else "SFCW"
+    utils.banner(f"MEASUREMENT: {args.file_prefix} | {mode}")
+    frames = _build_cfg_frames(cfg, logger)
     if frames is None:
-        return 1
+        return utils.ReturnCode.FAILURE.value
+    logger.info(f"output: {capture_dir}")
     base_cmd = _build_base_cmd(args)
-
-    rc = _spawn_warmup(base_cmd, cfg, logger)
-    if rc != 0:
+    utils.banner("WARMUP")
+    rc = _spawn_warmup_process(base_cmd, logger)
+    if rc != utils.ReturnCode.SUCCESS.value:
         return rc
-
-    rc = _spawn_frames(base_cmd, frames, args.file_prefix,
-                       capture_dir, cfg.com_port, logger)
-    if rc != 0:
-        return rc
-
+    record.warmup_cleanup(Path(capture_dir), logger)
+    utils.banner("CAPTURE")
+    total = len(frames)
+    for i, commands in enumerate(frames, start=1):
+        prefix = f"{args.file_prefix}_f{i - 1:03d}"
+        frame_file = utils.write_frame_file(commands)
+        rc = _spawn_frame_process(base_cmd,
+                                  frame_file,
+                                  prefix,
+                                  i,
+                                  total,
+                                  logger)
+        if rc != utils.ReturnCode.SUCCESS.value:
+            return rc
     if cfg.sfcw_cfg is not None:
-        utils.save_metadata_sfcw(cfg, len(frames), capture_dir)
-    logger.info("All %d frames captured successfully", len(frames))
-    return 0
+        utils.save_metadata_sfcw(cfg, capture_dir)
+    else:
+        utils.save_metadata_fmcw(cfg, capture_dir)
+    elapsed = time.monotonic() - t0
+    utils.banner(
+        f"COMPLETE: {total}/{total} raw frame files | elapsed {elapsed:.1f}s"
+    )
+    return utils.ReturnCode.SUCCESS.value
 
 
-def subprocess_entry(argv: list[str], logger: logging.Logger) -> int:
-    """Entry point for subprocess re-invocation via --_subprocess."""
+def handle_child_process(argv: list[str],
+                         logger: logging.Logger) -> int:
     idx = argv.index("--_subprocess")
     sub_argv = argv[idx + 1:]
     parser = argparse.ArgumentParser(prog="app_runner_subprocess")
-    parser.add_argument("--mode", required=True, choices=["warmup", "capture"])
-    parser.add_argument("--com-port")
-    parser.add_argument("--output-path")
-    parser.add_argument("--frame-file")
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--warmup", action="store_true")
+    group.add_argument("--frame-file")
     parser.add_argument("--prefix")
-    parser.add_argument("-v", dest="verbose", action="store_true")  # parsed by main()
+    parser.add_argument("-v", dest="verbose", action="store_true")
     ns = parser.parse_args(sub_argv)
-    if ns.mode == "warmup":
-        if not ns.com_port or not ns.output_path:
-            parser.error("--com-port and --output-path required for warmup mode")
-        return record.warmup_frame(ns.com_port, ns.output_path, logger)
-    else:
-        if not ns.frame_file or not ns.prefix:
-            parser.error("--frame-file and --prefix required for capture mode")
-        return record.single_frame(ns.frame_file, ns.prefix, logger)
+    if ns.warmup:
+        return record.warmup_frame(logger)
+    if not ns.prefix:
+        parser.error("--prefix required with --frame-file")
+    return record.single_frame(ns.frame_file, ns.prefix, logger)

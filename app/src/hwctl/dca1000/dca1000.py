@@ -44,7 +44,6 @@ class DCA1000:
             self.logger.error("Failed to initialize DCA1000")
             return False
         self.radar_api.register_event_callback(self._event_callback)
-        self.logger.info("DCA1000 initialised")
         return True
 
     def set_file_base_path(self, path: str) -> bool:
@@ -84,4 +83,3 @@ class DCA1000:
     def deinit(self) -> None:
         self.radar_api.dca1000_deinit()
         self.record_done.clear()
-        self.logger.info("DCA1000 deinitialized")

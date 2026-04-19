@@ -16,9 +16,8 @@ class Uart:
                 self.port, self.baudrate, timeout=self.timeout
             )
         except serial.SerialException as exc:
-            self.logger.error("UART connect failed on %s: %s", self.port, exc)
+            self.logger.error(f"UART connect failed on {self.port}: {exc}")
             return False
-        self.logger.info("UART connected on %s", self.port)
         return True
 
     def close(self) -> None:
@@ -32,16 +31,16 @@ class Uart:
             return False
         try:
             self.ser.write((cmd + "\n").encode("utf-8"))
-            self.logger.debug(">>> %s", cmd)
+            self.logger.debug(f">>> {cmd}")
             for _ in range(3):
                 resp = self.ser.readline().decode("utf-8").strip()
-                self.logger.debug("<<< %s", resp)
+                self.logger.debug(f"<<< {resp}")
                 if "Done" in resp:
                     return True
         except Exception as exc:
-            self.logger.error("UART send error: %s", exc)
+            self.logger.error(f"UART send error: {exc}")
             return False
         self.logger.error(
-            "UART send timeout waiting for 'Done' after: %s", cmd
+            f"UART send timeout waiting for 'Done' after: {cmd}"
         )
         return False

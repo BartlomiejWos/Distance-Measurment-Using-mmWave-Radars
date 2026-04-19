@@ -1,12 +1,13 @@
 import json
 import logging
+import os
 from pathlib import Path
 
 from . import acquisition
 from . import utils
 
 
-_WARMUP_COMMANDS = [
+WARMUP_COMMANDS = [
     "flushCfg",
     "dfeDataOutputMode 1",
     "channelCfg 15 1 0",
@@ -20,33 +21,43 @@ _WARMUP_COMMANDS = [
 ]
 
 
-def warmup_frame(com_port: str, output_path: str,
-                 logger: logging.Logger) -> int:
-    utils.banner("WARMUP: dummy frame (FPGA cold start)")
-    rc = acquisition.run(com_port, _WARMUP_COMMANDS,
-                         output_path, "_warmup", logger)
-    if rc == 0:
-        utils.banner("WARMUP done")
-    return rc
-
-
 def warmup_cleanup(output_dir: Path, logger: logging.Logger) -> None:
     for f in output_dir.glob("_warmup*"):
         f.unlink()
-        logger.debug("Removed warmup file: %s", f.name)
+        logger.debug(f"[warmup] removed file: {f.name}")
     log_csv = output_dir / "log.csv"
     if log_csv.exists():
         log_csv.unlink()
-        logger.debug("Removed warmup log.csv")
+        logger.debug("[warmup] removed log.csv")
 
 
 def single_frame(frame_file: str, prefix: str,
                  logger: logging.Logger) -> int:
-    utils.banner(f"Frame: {prefix}")
     with open(frame_file, "r") as f:
-        data = json.load(f)
-    rc = acquisition.run(data["com_port"], data["commands"],
-                         data["output_path"], prefix, logger)
-    if rc == 0:
-        utils.banner(f"Capture done: {prefix}")
+        commands = json.load(f)["commands"]
+    com_port = os.environ["RADAR_COM_PORT"]
+    output_path = os.environ["RADAR_OUTPUT_PATH"]
+    rc = acquisition.run(com_port, commands, output_path, prefix, logger,
+                         tag=prefix)
+    if rc == utils.ReturnCode.SUCCESS.value:
+        bin_path = Path(output_path) / f"{prefix}_Raw_0.bin"
+        if bin_path.exists():
+            size_mb = bin_path.stat().st_size / (1024 * 1024)
+            logger.info(f"[{prefix}] captured -> {bin_path.name} "
+                        f"({size_mb:.1f} MB)")
+        else:
+            logger.warning(f"[{prefix}] capture file not found: {bin_path}")
+    return rc
+
+
+def warmup_frame(logger: logging.Logger) -> int:
+    # Runs as a dedicated subprocess (fresh DLL load) to shake out the
+    # DCA1000 cold-start state before real captures.
+    com_port = os.environ["RADAR_COM_PORT"]
+    output_path = os.environ["RADAR_OUTPUT_PATH"]
+    rc = acquisition.run(com_port, WARMUP_COMMANDS, output_path,
+                         "_warmup", logger, wait_for_done=False,
+                         tag="warmup")
+    if rc == utils.ReturnCode.SUCCESS.value:
+        logger.info(f"[warmup] done (rc={rc})")
     return rc

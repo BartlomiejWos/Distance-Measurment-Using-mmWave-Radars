@@ -1,55 +1,61 @@
 import logging
-import re
+import os
 import sys
 from pathlib import Path
+import colorama
+from colorlog import ColoredFormatter
 
-from cli import parse_args
+
 from cfg.parse import load_cfg
+from cfg.types.radar import RadarCfg
+import cli
 import capture
 
 
-def build_logger(verbose: bool = False) -> logging.Logger:
-    logging.basicConfig(
-        level=logging.DEBUG if verbose else logging.INFO,
-        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
-    )
+def _build_logger(verbose: bool = False) -> logging.Logger:
+    colorama.just_fix_windows_console()
+    handler = logging.StreamHandler()
+    handler.setFormatter(ColoredFormatter(
+        "%(log_color)s%(levelname)s%(reset)s "
+        "%(white)s%(name)s%(reset)s: %(message)s",
+        log_colors={
+            "DEBUG":    "light_black",
+            "INFO":     "blue",
+            "WARNING":  "yellow",
+            "ERROR":    "red",
+            "CRITICAL": "bold_red",
+        },
+    ))
+    root = logging.getLogger()
+    root.handlers = [handler]
+    root.setLevel(logging.DEBUG if verbose else logging.INFO)
     return logging.getLogger("radar_app")
 
 
-def _next_prefix(base: str, output_dir: Path) -> str:
-    pattern = re.compile(rf"^{re.escape(base)}_(\d{{3}})$")
-    max_idx = -1
-    if output_dir.is_dir():
-        for entry in output_dir.iterdir():
-            if entry.is_dir():
-                m = pattern.match(entry.name)
-                if m:
-                    max_idx = max(max_idx, int(m.group(1)))
-    return f"{base}_{max_idx + 1:03d}"
+def _set_session_variables(cfg: RadarCfg, capture_dir: Path) -> None:
+    os.environ["RADAR_COM_PORT"] = cfg.com_port
+    os.environ["RADAR_OUTPUT_PATH"] = str(capture_dir)
+
 
 def main() -> int:
     verbose = "-v" in sys.argv
-    logger = build_logger(verbose)
-
+    logger = _build_logger(verbose)
     if "--_subprocess" in sys.argv:
-        return capture.subprocess_entry(sys.argv, logger)
-
-    args = parse_args(sys.argv[1:], logger)
+        return capture.handle_child_process(sys.argv, logger)
+    args = cli.parse_args(sys.argv[1:], logger)
     if args is None:
-        return 1
-    cfg = load_cfg(args.cfg_file_path)
+        return capture.ReturnCode.FAILURE.value
+    cfg = load_cfg(args.cfg_file_path, logger)
     if cfg is None:
         logger.error(f"Failed to parse config: {args.cfg_file_path}")
-        return 1
-
+        return capture.ReturnCode.FAILURE.value
     if args.auto_prefix is not None:
-        prefix = _next_prefix(args.auto_prefix, Path(cfg.output_path))
-        args.file_prefix = prefix
-
+        args.file_prefix = capture.utils.next_prefix(args.auto_prefix,
+                                                     Path(cfg.output_path))
+    assert args.file_prefix is not None
     capture_dir = Path(cfg.output_path) / args.file_prefix
     capture_dir.mkdir(parents=True, exist_ok=True)
-
-    print(f"Capture prefix: {args.file_prefix}")
+    _set_session_variables(cfg, capture_dir)
     return capture.run(args, cfg, capture_dir, logger)
 
 

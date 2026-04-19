@@ -1,0 +1,7 @@
+json5
+pyserial
+tqdm
+colorlog
+colorama
+types-tqdm
+types-colorama

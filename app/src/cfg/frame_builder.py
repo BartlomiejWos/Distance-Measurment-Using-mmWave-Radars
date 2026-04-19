@@ -158,8 +158,8 @@ def build_sfcw_frames(cfg: RadarCfg,
 
     while f < end:
         if current and _needs_split(f, profile_base, len(current)):
-            logger.debug("SFCW split: %d tones, base=%d Hz, next base=%d Hz",
-                         len(current), profile_base, f)
+            logger.debug(f"SFCW split: {len(current)} tones, "
+                         f"base={profile_base} Hz, next base={f} Hz")
             frames.append(
                 _build_frame_commands(
                     profile_base, current, preamble,
@@ -180,6 +180,5 @@ def build_sfcw_frames(cfg: RadarCfg,
             )
         )
     total_tones = (end - start) // df
-    logger.info("Built %d SFCW frame(s) from %d tones",
-                len(frames), total_tones)
+    logger.info(f"Built {len(frames)} SFCW frame(s) from {total_tones} tones")
     return frames

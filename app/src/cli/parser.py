@@ -8,11 +8,10 @@ from .args import AppArgs
 def _validate_cfg_path(path: str, logger: logging.Logger) -> bool:
     p = Path(path)
     if p.suffix.lower() != ".json5":
-        logger.error("--cfg-file-path must have .json5 extension: %s",
-                     path)
+        logger.error(f"--cfg-file-path must have .json5 extension: {path}")
         return False
     if not p.exists():
-        logger.error("Config file not found: %s", path)
+        logger.error(f"Config file not found: {path}")
         return False
     return True
 

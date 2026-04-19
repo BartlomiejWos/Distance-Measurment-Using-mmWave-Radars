@@ -7,10 +7,7 @@ APP_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$APP_DIR"
 
 TARGETS=(
-    src/hwctl
-    src/ports
-    src/cli
-    src/cfg
+    src/
 )
 
 echo "=== mypy ==="
