@@ -103,7 +103,7 @@ def handle_child_process(argv: list[str],
                          logger: logging.Logger) -> int:
     idx = argv.index("--_subprocess")
     sub_argv = argv[idx + 1:]
-    parser = argparse.ArgumentParser(prog="app_runner_subprocess")
+    parser = argparse.ArgumentParser(prog="radar_app_subprocess")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--warmup", action="store_true")
     group.add_argument("--frame-file")
