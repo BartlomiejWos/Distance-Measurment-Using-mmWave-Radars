@@ -30,7 +30,8 @@ class Uart:
             self.logger.error("UART send called before connect")
             return False
         try:
-            self.ser.write((cmd + "\n").encode("utf-8"))
+            self.ser.write((cmd + "\r\n").encode("utf-8"))
+            self.ser.flush()
             self.logger.debug(f">>> {cmd}")
             for _ in range(3):
                 resp = self.ser.readline().decode("utf-8").strip()

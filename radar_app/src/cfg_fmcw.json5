@@ -29,7 +29,7 @@
   },
 
   fmcw_cfg: {
-    start_freq_hz: 77e9,       // [Hz] chirp start frequency (valid 76e9-81e9)
+    start_freq_Ghz: 77.5,        // [Hz] chirp start frequency (valid 76e9-81e9)
     frame: {
       num_loops: 128,          // chirps per frame; 1-255
       num_frames: 2,           // frames per capture; 1-65535 (0 = infinite — not supported in this app)

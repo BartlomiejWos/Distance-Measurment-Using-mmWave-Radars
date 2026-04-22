@@ -7,23 +7,27 @@ _MAX_CHIRPS_PER_FRAME = 512
 _MAX_START_FREQ_VAR_HZ = 450e6
 
 
-def _ghz_to_hz(freq_hz: int) -> int:
+def _ghz_to_hz(freq_ghz: float) -> int:
+    return int(round(freq_ghz * 1_000_000_000))
+
+
+def _hz_to_ghz_int(freq_hz: int) -> int:
     return freq_hz // 1_000_000_000
 
 
 def _build_profile_cmd(base_hz: int, cfg: RadarCfg) -> str:
     p = cfg.profile_cfg
-    start_freq_ghz = f"{base_hz / 1e9:.6f}"
+    start_freq_ghz = f"{base_hz / 1e9:g}"
     return (
         f"profileCfg {types.profile.PROFILE_ID_DEFAULT}"
         f" {start_freq_ghz}"
-        f" {p.idle_time.to_float()}"
-        f" {p.adc_start_time.to_float()}"
-        f" {p.ramp_end_time.to_float()}"
+        f" {p.idle_time.to_float():g}"
+        f" {p.adc_start_time.to_float():g}"
+        f" {p.ramp_end_time.to_float():g}"
         f" {p.tx_out_power.to_int()}"
         f" {p.tx_phase_shifter.to_int()}"
-        f" {p.freq_slope_const.to_float()}"
-        f" {p.tx_start_time.to_float()}"
+        f" {p.freq_slope_const.to_float():g}"
+        f" {p.tx_start_time.to_float():g}"
         f" {p.num_adc_samples.to_int()}"
         f" {p.dig_out_sample_rate.to_int()}"
         f" {p.hpf_corner_freq1.to_int()}"
@@ -51,7 +55,7 @@ def _build_preamble(cfg: RadarCfg) -> list[str]:
 
 
 def _needs_split(freq: int, base: int, count: int) -> bool:
-    if _ghz_to_hz(freq) != _ghz_to_hz(base):
+    if _hz_to_ghz_int(freq) != _hz_to_ghz_int(base):
         return True
     if (freq - base) >= _MAX_START_FREQ_VAR_HZ:
         return True
@@ -102,7 +106,7 @@ def build_fmcw_frames(cfg: RadarCfg,
         return None
     preamble = _build_preamble(cfg)
     cmds = list(preamble)
-    start_hz = int(round(fmcw.start_freq_hz.to_float()))
+    start_hz = _ghz_to_hz(fmcw.start_freq_hz.to_float())
     cmds.append(_build_profile_cmd(start_hz, cfg))
     tx_mask = cfg.channel_cfg.tx_channel_mask.to_int()
     cmds.append(
@@ -139,11 +143,11 @@ def build_sfcw_frames(cfg: RadarCfg,
     if sfcw is None:
         logger.error("SFCW config is required for SFCW mode")
         return None
-    start = int(round(sfcw.start_freq_hz.to_float()))
-    end = int(round(sfcw.end_freq_hz.to_float()))
+    start = _ghz_to_hz(sfcw.start_freq_ghz.to_float())
+    end = _ghz_to_hz(sfcw.end_freq_ghz.to_float())
     df = int(round(sfcw.df_hz.to_float()))
     if end <= start:
-        logger.error("end_freq_hz must be > start_freq_hz")
+        logger.error("end_freq_ghz must be > start_freq_ghz")
         return None
     if df <= 0:
         logger.error("df_hz must be > 0")

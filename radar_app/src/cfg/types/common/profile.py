@@ -4,10 +4,6 @@ PROFILE_ID_DEFAULT = 0
 
 
 class StartFreqGHz:
-    _FREQ_LIMIT_LOW_GHZ = 76.0
-    _FREQ_LIMIT_HIGH_GHZ = 81.0
-    _FREQ_EXCLUDED_GHZ = {78.0}
-
     def __init__(self, value: float) -> None:
         self._value = value
 
@@ -19,9 +15,7 @@ class StartFreqGHz:
         if not isinstance(value, (int, float)):
             return None
         v = float(value)
-        if v < cls._FREQ_LIMIT_LOW_GHZ or v > cls._FREQ_LIMIT_HIGH_GHZ:
-            return None
-        if v in cls._FREQ_EXCLUDED_GHZ:
+        if not _in_valid_band(v):
             return None
         return cls(v)
 
@@ -235,6 +229,31 @@ class RxGain:
         if value < 0:
             return None
         return cls(value)
+
+
+_FREQ_LOW_GHZ = 77.5   # Lower bound forces VCO2 on IWR1843
+_FREQ_HIGH_GHZ = 81.0
+
+
+def _in_valid_band(freq_ghz: float) -> bool:
+    return _FREQ_LOW_GHZ <= freq_ghz <= _FREQ_HIGH_GHZ
+
+
+class EndFreqGHz:
+    def __init__(self, value: float) -> None:
+        self._value = value
+
+    def to_float(self) -> float:
+        return self._value
+
+    @classmethod
+    def from_float(cls, value: object) -> "EndFreqGHz | None":
+        if not isinstance(value, (int, float)):
+            return None
+        v = float(value)
+        if not _in_valid_band(v):
+            return None
+        return cls(v)
 
 
 @dataclass

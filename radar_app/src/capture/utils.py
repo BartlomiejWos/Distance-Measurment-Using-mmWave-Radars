@@ -44,8 +44,8 @@ def save_metadata_sfcw(cfg: RadarCfg, capture_dir: Path) -> None:
     assert cfg.sfcw_cfg is not None
     metadata = {
         **_common_metadata(cfg),
-        "start_freq_hz": cfg.sfcw_cfg.start_freq_hz.to_float(),
-        "end_freq_hz": cfg.sfcw_cfg.end_freq_hz.to_float(),
+        "start_freq_ghz": cfg.sfcw_cfg.start_freq_ghz.to_float(),
+        "end_freq_ghz": cfg.sfcw_cfg.end_freq_ghz.to_float(),
         "df_hz": cfg.sfcw_cfg.df_hz.to_float(),
         "num_loops": cfg.sfcw_cfg.frame.num_loops.to_int(),
         "num_frames": cfg.sfcw_cfg.frame.num_frames.to_int(),
@@ -61,7 +61,7 @@ def save_metadata_fmcw(cfg: RadarCfg, capture_dir: Path) -> None:
     assert cfg.fmcw_cfg is not None
     metadata = {
         **_common_metadata(cfg),
-        "start_freq_hz": cfg.fmcw_cfg.start_freq_hz.to_float(),
+        "start_freq_ghz": cfg.fmcw_cfg.start_freq_hz.to_float(),
         "freq_slope_mhz_per_usec": cfg.profile_cfg.freq_slope_const.to_float(),
         "num_loops": cfg.fmcw_cfg.frame.num_loops.to_int(),
         "num_frames": cfg.fmcw_cfg.frame.num_frames.to_int(),

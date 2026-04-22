@@ -182,19 +182,17 @@ def _parse_frame_cfg(frame_obj: dict[str, Any],
 
 def _parse_sfcw_cfg(json_cfg: dict[str, Any],
                     logger: logging.Logger) -> types.sfcw.SfcwCfg | None:
-    start = types.sfcw.SfcwStartFreqHz.from_float(
-        json_cfg.get("start_freq_hz")
+    start = types.profile.StartFreqGHz.from_float(
+        json_cfg.get("start_freq_Ghz")
     )
     if start is None:
-        logger.error("sfcw_cfg.start_freq_hz: "
-                     "expected 76e9-81e9 Hz, excluding 78e9-79e9")
+        logger.error("sfcw_cfg.start_freq_Ghz: expected 77.5-81 [GHz]")
         return None
-    end = types.sfcw.SfcwEndFreqHz.from_float(
-        json_cfg.get("end_freq_hz")
+    end = types.profile.EndFreqGHz.from_float(
+        json_cfg.get("end_freq_Ghz")
     )
     if end is None:
-        logger.error("sfcw_cfg.end_freq_hz: "
-                     "expected 76e9-81e9 Hz, excluding 78e9-79e9")
+        logger.error("sfcw_cfg.end_freq_Ghz: expected 77.5-81 [GHz]")
         return None
     df = types.sfcw.DfHz.from_float(
         json_cfg.get("df_hz")
@@ -210,8 +208,8 @@ def _parse_sfcw_cfg(json_cfg: dict[str, Any],
     if frame is None:
         return None
     return types.sfcw.SfcwCfg(
-        start_freq_hz=start,
-        end_freq_hz=end,
+        start_freq_ghz=start,
+        end_freq_ghz=end,
         df_hz=df,
         frame=frame,
     )
@@ -220,11 +218,11 @@ def _parse_sfcw_cfg(json_cfg: dict[str, Any],
 def _parse_fmcw_cfg(json_cfg: dict[str, Any],
                     logger: logging.Logger
                     ) -> types.fmcw.FmcwCfg | None:
-    start_freq_hz = types.fmcw.FmcwStartFreqHz.from_float(
-        json_cfg.get("start_freq_hz")
+    start_freq_ghz = types.profile.StartFreqGHz.from_float(
+        json_cfg.get("start_freq_Ghz")
     )
-    if start_freq_hz is None:
-        logger.error("fmcw_cfg.start_freq_hz: expected 76e9-81e9 Hz")
+    if start_freq_ghz is None:
+        logger.error("fmcw_cfg.start_freq_Ghz: expected 77.5-81 [GHz]")
         return None
     frame_obj = json_cfg.get("frame")
     if not isinstance(frame_obj, dict):
@@ -234,7 +232,7 @@ def _parse_fmcw_cfg(json_cfg: dict[str, Any],
     if frame is None:
         return None
     return types.fmcw.FmcwCfg(
-        start_freq_hz=start_freq_hz,
+        start_freq_hz=start_freq_ghz,
         frame=frame,
     )
 

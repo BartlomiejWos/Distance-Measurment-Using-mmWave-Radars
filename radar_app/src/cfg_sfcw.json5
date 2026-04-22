@@ -29,8 +29,8 @@
   },
 
   sfcw_cfg: {
-    start_freq_hz: 79e9,         // [Hz] first tone (valid 76e9-81e9, excl. 78e9-79e9 due to firmware error)
-    end_freq_hz: 79.6e9,         // [Hz] last tone (exclusive) -> BW = end - start
+    start_freq_Ghz: 79,          // [Hz] first tone (valid 76e9-81e9, excl. 78e9-79e9 due to firmware error)
+    end_freq_Ghz: 79.6,         // [Hz] last tone (exclusive) -> BW = end - start
     df_hz: 1e6,                  // [Hz] frequency step between tones -> N = BW/df
     frame: {
       num_loops: 1,              // repeats the whole tone sequence within one frame 

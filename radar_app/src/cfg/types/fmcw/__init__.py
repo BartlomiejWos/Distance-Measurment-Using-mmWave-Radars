@@ -8,7 +8,6 @@ from .fmcw import (
     TRIGGER_SELECT_SW,
     FRAME_TRIGGER_DELAY_MS,
     FmcwCfg,
-    FmcwStartFreqHz,
 )
 
 
@@ -22,5 +21,4 @@ __all__ = [
     "TRIGGER_SELECT_SW",
     "FRAME_TRIGGER_DELAY_MS",
     "FmcwCfg",
-    "FmcwStartFreqHz",
 ]
