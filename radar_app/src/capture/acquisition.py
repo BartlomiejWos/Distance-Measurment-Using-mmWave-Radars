@@ -10,7 +10,7 @@ from hwctl.uart import Uart
 from . import utils
 
 
-_ACQ_TIMEOUT_S = 20.0
+_ACQ_TIMEOUT_S = 30.0
 _WARMUP_SLEEP_S = 2.0
 
 
