@@ -1,41 +1,41 @@
 {
-  output_path: "C:\\Users\\Asus\\Desktop\\REPOZYTORIUM\\Distance-Measurment-Using-mmWave-Radars\\postproc\\data",
+  output_path: "radar_postprocessing\\data",
   com_port: "COM22",
 
   channel_cfg: {
-    dfe_output_mode: 1,          // 1 = frame-based chirps, 3 = advanced frame cfg
-    rx_channel_mask: 15,         // 1=RX1, 3=RX1-2, 7=RX1-3, 15=RX1-4 (4b bitmask)
-    tx_channel_mask: 1,          // TX1 only (other TXs untested)
+    dfe_output_mode: 1,
+    rx_channel_mask: 15,
+    tx_channel_mask: 1,
   },
 
   adc_cfg: {
-    adc_output_fmt: 1,           // 1 = complex 1x, 2 = complex 2x
-    low_power_adc_mode: 0,       // 0 = regular, 1 = low power
+    adc_output_fmt: 1,
+    low_power_adc_mode: 0,
   },
 
   profile_cfg: {
-    idle_time: 7,                // [usec] gap before chirp starts
-    adc_start_time: 3,           // [usec] ADC sampling start offset
-    ramp_end_time: 39,           // [usec] Ramp end time
-    tx_out_power: 0,             // Tx output power back-off code
-    tx_phase_shifter: 0,         // Tx phase shift
-    freq_slope_const: 0,         // [MHz/usec] SFCW uses CW tones -> keep 0
-    num_adc_samples: 256,        // samples per tone (must be even)
-    hpf_corner_freq1: 0,         // stage-1 HPF: 0=175kHz, 1=235kHz, 2=350kHz, 3=700kHz
-    hpf_corner_freq2: 0,         // stage-2 HPF: 0=350kHz, 1=700kHz, 2=1.4MHz, 3=2.8MHz
-    dig_out_sample_rate: 7200,   // [ksps] ADC sample rate
-    tx_start_time: 1,            // [usec] TX enable offset
-    rx_gain: 30,                 // [dB] RX gain
+    idle_time: 10,
+    adc_start_time: 4,
+    ramp_end_time: 120,
+    tx_out_power: 0,
+    tx_phase_shifter: 0,
+    freq_slope_const: 0,
+    num_adc_samples: 256,
+    hpf_corner_freq1: 0,
+    hpf_corner_freq2: 0,
+    dig_out_sample_rate: 7200,
+    tx_start_time: 1,
+    rx_gain: 30,
   },
 
   sfcw_cfg: {
-    start_freq_Ghz: 79,          // [Hz] first tone (valid 76e9-81e9, excl. 78e9-79e9 due to firmware error)
-    end_freq_Ghz: 79.6,         // [Hz] last tone (exclusive) -> BW = end - start
-    df_hz: 1e6,                  // [Hz] frequency step between tones -> N = BW/df
+    start_freq_Ghz: 77.0,
+    end_freq_Ghz: 78.0,
+    df_hz: 1e6,
     frame: {
-      num_loops: 1,              // repeats the whole tone sequence within one frame 
-      num_frames: 1,             // frames per capture; 1-65535 (0 = infinite - not supported in this app)
-      frame_periodicity_ms: 50,  // [ms] frame repetition period
+      num_loops: 128,
+      num_frames: 1,
+      frame_periodicity_ms: 200,
     },
   },
 }
