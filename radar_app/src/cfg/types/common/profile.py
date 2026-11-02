@@ -261,7 +261,7 @@ class ProfileCfg:
     idle_time: IdleTimeUsec
     adc_start_time: AdcStartTimeUsec
     ramp_end_time: RampEndTimeUsec
-    tx_out_power: TxOutPower
+    tx_out_power: txoutpower
     tx_phase_shifter: TxPhaseShifter
     freq_slope_const: FreqSlopeConst
     num_adc_samples: NumAdcSamples
