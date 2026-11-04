@@ -1,6 +1,6 @@
 CXX = g++
 
-PYTHON_VERSION = 3.12
+PYTHON_VERSION = 3.14
 PYTHON_INCLUDE = /mingw64/include/python$(PYTHON_VERSION)
 PYTHON_LIB = /mingw64/lib/libpython$(PYTHON_VERSION).dll.a
 PYBIND11_INCLUDE = ../../../pybind11/include
