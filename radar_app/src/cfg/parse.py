@@ -4,6 +4,7 @@ from pathlib import Path
 import json5
 
 from cfg import types
+from cfg.default import DEFAULT_CFG
 
 
 def _load_json5(path: str | Path) -> dict[str, Any]:
@@ -294,3 +295,7 @@ def load_cfg(path: str | Path,
     if radar_cfg is None:
         return None
     return radar_cfg
+
+
+def load_default_cfg(logger: logging.Logger) -> types.radar.RadarCfg | None:
+    return _parse_radar_cfg(DEFAULT_CFG, logger)

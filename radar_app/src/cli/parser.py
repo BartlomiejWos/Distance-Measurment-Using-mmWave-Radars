@@ -4,6 +4,8 @@ from pathlib import Path
 
 from .args import AppArgs
 
+DEFAULT_AUTO_PREFIX = "meas"
+
 
 def _validate_cfg_path(path: str, logger: logging.Logger) -> bool:
     p = Path(path)
@@ -23,8 +25,9 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--cfg-file-path",
-        required=True,
-        help="Path to radar configuration (FMCW or SFCW) stored in json5 file.",
+        default=None,
+        help="Path to radar configuration (FMCW or SFCW) stored in json5 file "
+             "(default: configuration from cfg/default.py)",
     )
     parser.add_argument(
         "--file-prefix",
@@ -54,9 +57,9 @@ def parse_args(argv: list[str] | None,
     ns = parser.parse_args(argv)
 
     if ns.file_prefix is None and ns.auto_prefix is None:
-        logger.error("provide --file-prefix or --auto-prefix")
-        return None
-    if not _validate_cfg_path(ns.cfg_file_path, logger):
+        ns.auto_prefix = DEFAULT_AUTO_PREFIX
+    if ns.cfg_file_path is not None and \
+            not _validate_cfg_path(ns.cfg_file_path, logger):
         return None
     return AppArgs(
         file_prefix=ns.file_prefix,

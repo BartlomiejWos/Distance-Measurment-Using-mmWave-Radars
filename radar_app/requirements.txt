@@ -5,4 +5,5 @@ colorlog
 colorama
 types-tqdm
 types-colorama
+types-pyserial
 pyinstaller

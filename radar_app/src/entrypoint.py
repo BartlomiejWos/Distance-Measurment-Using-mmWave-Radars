@@ -6,7 +6,7 @@ import colorama
 from colorlog import ColoredFormatter
 
 
-from cfg.parse import load_cfg
+from cfg.parse import load_cfg, load_default_cfg
 from cfg.types.radar import RadarCfg
 import cli
 import capture
@@ -45,9 +45,14 @@ def main() -> int:
     args = cli.parse_args(sys.argv[1:], logger)
     if args is None:
         return capture.ReturnCode.FAILURE.value
-    cfg = load_cfg(args.cfg_file_path, logger)
+    if args.cfg_file_path is None:
+        logger.info("Using default configuration (cfg/default.py)")
+        cfg = load_default_cfg(logger)
+    else:
+        cfg = load_cfg(args.cfg_file_path, logger)
     if cfg is None:
-        logger.error(f"Failed to parse config: {args.cfg_file_path}")
+        logger.error(f"Failed to parse config: "
+                     f"{args.cfg_file_path or 'default'}")
         return capture.ReturnCode.FAILURE.value
     if args.auto_prefix is not None:
         args.file_prefix = capture.utils.next_prefix(args.auto_prefix,

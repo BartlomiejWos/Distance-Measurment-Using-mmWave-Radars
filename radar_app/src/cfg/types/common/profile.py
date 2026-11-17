@@ -231,7 +231,7 @@ class RxGain:
         return cls(value)
 
 
-_FREQ_LOW_GHZ = 77.5   # Lower bound forces VCO2 on IWR1843
+_FREQ_LOW_GHZ = 77.0   # Lower bound forces VCO2 on IWR1843
 _FREQ_HIGH_GHZ = 81.0
 
 
