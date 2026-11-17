@@ -59,17 +59,22 @@ htmlcov/
 *.o
 *.obj
 *.dll
-*.exe
 *.lib
 *.a
 
 # =========================
 # Project specific
 # =========================
-postproc/data/
-postproc/lab_data/
+# Top repository
 docs/
-docs.txt
+# Postprocessing
+radar_postprocessing/configs/
+radar_postprocessing/data/
+radar_postprocessing/docs/
+radar_postprocessing/old/
+radar_postprocessing/fmcw/papers/
+radar_postprocessing/sfcw/papers/
+radar_postprocessing/sfcw/plots/
 
 # =========================
 # Firmware — build artifacts & dead SoC variants

@@ -1,0 +1,10 @@
+{
+  "num_adc_samples": 1000,
+  "num_rx": 4,
+  "is_real": false,
+  "start_freq_ghz": 77.0,
+  "freq_slope_mhz_per_usec": 7.2,
+  "num_loops": 128,
+  "num_frames": 1,
+  "frame_periodicity_ms": 50
+}
