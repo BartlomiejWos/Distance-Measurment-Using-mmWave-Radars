@@ -1,7 +1,7 @@
 # Distance Measurement using mmWave Radars
 
-This project aims to implement **distance measurement using an SFCW (Stepped-Frequency Continuous Wave)** technique on a **TI mmWave FMCW radar** platform (IWR1843).  
-It demonstrates a full signal chain from radar configuration, data acquisition, and firmware modifications, to MATLAB-based DSP analysis.
+This project implements high-precision **distance measurement with FMCW and SFCW (Stepped-Frequency Continuous Wave)** on a single **TI mmWave radar** platform (IWR1843), where SFCW is emulated in firmware on the FMCW hardware.  
+It covers the full signal chain: firmware modifications, radar configuration, data acquisition, and MATLAB-based DSP analysis and calibration. The project was developed as part of a master's thesis at AGH University of Krakow.
 
 ## Project Overview
 
