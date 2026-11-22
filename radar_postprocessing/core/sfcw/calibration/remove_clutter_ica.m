@@ -1,5 +1,4 @@
 function C_clean = remove_clutter_ica(C, Nfft, Rmax, Rcut_cm, ratio_thresh)
-    if nargin < 5 || isempty(ratio_thresh), ratio_thresh = 0.5; end
     [N, M] = size(C);
     n_comp = min(M - 1, 5);  % number of ICA components
 
@@ -15,6 +14,7 @@ function C_clean = remove_clutter_ica(C, Nfft, Rmax, Rcut_cm, ratio_thresh)
 
     % Step 3: FastICA (deflation, tanh nonlinearity)
     W_ica = zeros(n_comp, n_comp);
+    rng_state = rng;   % fixed seed for reproducible ICA, restored afterwards
     rng(42);
     for p = 1:n_comp
         w = randn(n_comp, 1);
@@ -41,6 +41,7 @@ function C_clean = remove_clutter_ica(C, Nfft, Rmax, Rcut_cm, ratio_thresh)
         end
         W_ica(p, :) = w_new';
     end
+    rng(rng_state);
 
     % Step 4: Sources and mixing matrix
     S = W_ica * Z;
@@ -50,7 +51,7 @@ function C_clean = remove_clutter_ica(C, Nfft, Rmax, Rcut_cm, ratio_thresh)
     R_axis_cm = (0:Nfft-1)' * (Rmax / Nfft) * 100;
 
     is_clutter = false(n_comp, 1);
-    ratio_all  = zeros(n_comp, 1);
+    ratio_all = zeros(n_comp, 1);
     for p = 1:n_comp
         % Reconstruct this component's contribution to the signal
         X_p = A(:, p) * S(p, :);  % [2N x M]
@@ -63,7 +64,7 @@ function C_clean = remove_clutter_ica(C, Nfft, Rmax, Rcut_cm, ratio_thresh)
         R_half = R_axis_cm(1:Nfft/2);
 
         energy_total = sum(abs(Y_half).^2);
-        energy_near  = sum(abs(Y_half(R_half < Rcut_cm)).^2);
+        energy_near = sum(abs(Y_half(R_half < Rcut_cm)).^2);
         ratio = energy_near / energy_total;
         ratio_all(p) = ratio;
 

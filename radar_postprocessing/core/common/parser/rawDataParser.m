@@ -32,16 +32,16 @@ function [retVal, numCh, N_actual] = rawDataParser(fileName, ...
 
     info = dir(fileName);
     assert(~isempty(info), 'rawDataParser:notFound', 'File not found: %s', fileName);
-    file_bytes  = info.bytes;
+    file_bytes = info.bytes;
     bytes_chirp = numADCSamples * numRX * bytes_per_sample;
 
     if mod(file_bytes, bytes_chirp) == 0
         N_actual = numADCSamples;
-        numCh    = file_bytes / bytes_chirp;
+        numCh = file_bytes / bytes_chirp;
     else
         % DCA1000 truncated the last packet -> derive N from the actual size.
         N_actual = floor(file_bytes / bytes_per_sample / numRX / expectedChirps);
-        numCh    = expectedChirps;
+        numCh = expectedChirps;
         warning('rawDataParser:truncated', ...
             ['File %d B doesn''t fit N=%d, numRX=%d (needs %d B/chirp). ' ...
              'Clamping N: %d -> %d (assuming %d chirp%s).'], ...
@@ -62,7 +62,7 @@ function [retVal, numCh, N_actual] = rawDataParser(fileName, ...
         LVDS = zeros(1, fileSize / 2);
         counter = 1;
         for i = 1:4:fileSize-1
-            LVDS(1, counter)     = adcData(i)     + 1j * adcData(i+2);
+            LVDS(1, counter) = adcData(i) + 1j * adcData(i+2);
             LVDS(1, counter + 1) = adcData(i + 1) + 1j * adcData(i+3);
             counter = counter + 2;
         end

@@ -8,7 +8,6 @@ function [C, proc1] = load_tone_captures(cal_dir, prefix, folder_indices, Nfft)
             error('load_tone_captures:missing', 'Missing capture folder: %s', folder);
         end
         proc = SfcwProcessor(folder, Nfft);
-        proc = proc.average_tones();
         if k == 1
             proc1 = proc;
             C = zeros(proc.N, M);

@@ -1,10 +1,9 @@
 classdef FmcwProcessor
     properties
         cfg           % struct from metadata.json
-        raw           % [numRX x total_samples] raw IQ
-        num_chirps    % total chirps across all bin files
+        num_chirps   % total chirps across all bin files
         X             % [N x numChirps] complex - RX-averaged, fast-time x slow-time
-        Nfft
+        Nfft          % Number of FFT bins
         RP            % [Nfft/2 x numChirps] complex - per-chirp range profile
         Y             % [Nfft/2 x 1] complex - chirp-averaged range profile
         R             % [Nfft/2 x 1] range axis [m]
@@ -20,13 +19,13 @@ classdef FmcwProcessor
 
     methods
         function obj = FmcwProcessor(folder_path, Fs, Nfft)
-            obj.Fs   = Fs;          % required (no defaults)
-            obj.Nfft = Nfft;        % required (no defaults)
-            obj.cfg    = jsondecode(fileread( ...
+            obj.Fs = Fs;
+            obj.Nfft = Nfft;
+            obj.cfg = jsondecode(fileread( ...
                            fullfile(folder_path, 'metadata.json')));
-            obj.f0     = obj.cfg.start_freq_ghz * 1e9;
-            obj.slope  = obj.cfg.freq_slope_mhz_per_usec * 1e12;
-            obj.N      = obj.cfg.num_adc_samples;
+            obj.f0 = obj.cfg.start_freq_ghz * 1e9;
+            obj.slope = obj.cfg.freq_slope_mhz_per_usec * 1e12;
+            obj.N = obj.cfg.num_adc_samples;
 
             bins = dir(fullfile(folder_path, '*_Raw_0.bin'));
             if isempty(bins)
@@ -34,31 +33,28 @@ classdef FmcwProcessor
                       'No *_Raw_0.bin in %s', folder_path);
             end
 
-            numRX    = obj.cfg.num_rx;
+            numRX = obj.cfg.num_rx;
             filename = fullfile(folder_path, bins(1).name);
-            [obj.raw, obj.num_chirps, N_actual] = rawDataParser( ...
+            [raw, obj.num_chirps, N_actual] = rawDataParser( ...
                 filename, obj.N, numRX, obj.cfg.is_real);
             obj.N = N_actual;
-            Xrx   = reshape(obj.raw.', obj.N, obj.num_chirps, numRX);
+            Xrx = reshape(raw.', obj.N, obj.num_chirps, numRX);
             obj.X = sum(Xrx, 3) / numRX;   % RX averaging only; DC removed downstream
 
-            c        = 299792458;
-            obj.BW   = obj.slope * obj.N / obj.Fs;
-            obj.Rres = c / (2 * obj.BW);
-            obj.Rmax = c * obj.Fs / (2 * obj.slope);
+            obj.BW = obj.slope * obj.N / obj.Fs;
+            obj.Rres = phys_const.C / (2 * obj.BW);
+            obj.Rmax = phys_const.C * (obj.Fs / 2) / (2 * obj.slope);   % range axis uses bins 0..Fs/2
+
+            f_beat = (0:obj.Nfft/2-1).' * obj.Fs / obj.Nfft;
+            obj.R = f_beat * phys_const.C / (2 * obj.slope);
+            obj.Rcm = obj.R * 100;
         end
 
         function obj = range_profile(obj, window_fn)
-            c    = 299792458;
-            w    = window_fn(obj.N);
-            Xw   = (obj.X - mean(obj.X, 1)) .* w;
-            RPf  = fft(Xw, obj.Nfft, 1);
+            w = window_fn(obj.N);
+            Xw = (obj.X - mean(obj.X, 1)) .* w;
+            RPf = fft(Xw, obj.Nfft, 1);
             obj.RP = RPf(1:obj.Nfft/2, :);
-
-            f_beat = (0:obj.Nfft/2-1).' * obj.Fs / obj.Nfft;
-            obj.R  = f_beat * c / (2 * obj.slope);
-            obj.Rcm = obj.R * 100;
-
             obj.Y = mean(obj.RP, 2);
         end
 

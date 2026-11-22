@@ -6,7 +6,7 @@ function [dg, dp] = correct_iq_differential(C)
     end
 
     E1_all = zeros(N, 1);
-    P_all  = zeros(N, 1);
+    P_all = zeros(N, 1);
 
     for k = 1:N
         % DC removal
@@ -23,12 +23,12 @@ function [dg, dp] = correct_iq_differential(C)
         E1_k = norm(Q3) / norm(I2);
 
         E1_all(k) = E1_k;
-        P_all(k)  = P_k;
+        P_all(k) = P_k;
     end
 
     % Scalar constants
     E1 = median(E1_all);
-    P  = median(P_all);
+    P = median(P_all);
 
     dp = atan(P / E1);
     dg = sqrt(E1^2 + P^2) - 1;

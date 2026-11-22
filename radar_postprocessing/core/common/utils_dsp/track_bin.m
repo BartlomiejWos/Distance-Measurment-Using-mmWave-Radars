@@ -1,8 +1,10 @@
-function [d_abs, err, rmse, phi] = track_bin(RP, k_target, lambda, phase_sign, gt_um, robot_start_mm)
-    Y     = RP(k_target, :).';
-    phi   = unwrap(angle(Y .* conj(Y(1))));
-    d_rel = phase_sign * phi * lambda / (4*pi) * 1e6;
-    d_abs = robot_start_mm*1000 + d_rel;
-    err   = d_abs - gt_um;
-    rmse  = sqrt(mean(err.^2));
+function [position_um, error_um, rmse_um, phase_rad] = track_bin(range_profile, target_bin, ...
+                                                                 wavelength, phase_sign, ...
+                                                                 robot_position_um, robot_start_mm)
+    target_signal = range_profile(target_bin, :).';
+    phase_rad = unwrap(angle(target_signal .* conj(target_signal(1))));
+    displacement_um = phase_sign * phase_rad * wavelength / (4*pi) * 1e6;
+    position_um = robot_start_mm*1000 + displacement_um;
+    error_um = position_um - robot_position_um;
+    rmse_um = sqrt(mean(error_um.^2));
 end
